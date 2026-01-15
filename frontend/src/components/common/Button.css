@@ -1,0 +1,130 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    font-family: var(--font-primary);
+    font-weight: var(--weight-medium);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Variants */
+.btn-primary {
+    background: var(--color-purple-primary);
+    color: var(--color-text-light);
+    border-radius: var(--radius-pill);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--color-purple-hover);
+    box-shadow: var(--shadow-glow);
+}
+
+.btn-secondary {
+    background: var(--color-bg-glass-light);
+    backdrop-filter: blur(var(--blur-lg));
+    color: var(--color-text-dark);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-pill);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--color-purple-primary);
+}
+
+.btn-icon {
+    background: var(--color-purple-primary);
+    color: var(--color-text-light);
+    border-radius: var(--radius-circle);
+    padding: 0;
+    aspect-ratio: 1;
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: var(--color-purple-hover);
+    box-shadow: var(--shadow-glow);
+    transform: scale(1.05);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text-dark);
+    border-radius: var(--radius-md);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--color-purple-light);
+    color: var(--color-purple-primary);
+}
+
+/* Sizes */
+.btn-sm {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--text-small);
+}
+
+.btn-md {
+    padding: var(--space-md) var(--space-xl);
+    font-size: var(--text-body);
+}
+
+.btn-lg {
+    padding: var(--space-lg) var(--space-2xl);
+    font-size: var(--text-body-lg);
+}
+
+.btn-icon.btn-sm {
+    width: 36px;
+    height: 36px;
+}
+
+.btn-icon.btn-md {
+    width: 48px;
+    height: 48px;
+}
+
+.btn-icon.btn-lg {
+    width: 64px;
+    height: 64px;
+}
+
+/* Loading State */
+.btn-loading {
+    pointer-events: none;
+}
+
+.btn-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Icon and Text Layout */
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-text {
+    white-space: nowrap;
+}
