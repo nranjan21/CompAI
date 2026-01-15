@@ -7,17 +7,17 @@ An advanced multi-agent research system with a modern web interface that autonom
 ## 🖼️ User Interface
 
 ### Home Page - Research Input
-![CompAI Home Page](C:/Users/HP/.gemini/antigravity/brain/8f84277a-3fd8-486c-ba9b-07b60888d0be/uploaded_image_3_1768519735483.png)
+![CompAI Home Page](screenshots/home-page.png)
 
 The landing page features a clean, modern interface where users can enter any company name to begin deep research analysis.
 
 ### Research Progress Tracking
-![Research Progress](C:/Users/HP/.gemini/antigravity/brain/8f84277a-3fd8-486c-ba9b-07b60888d0be/uploaded_image_0_1768519735483.png)
+![Research Progress](screenshots/research-progress.png)
 
 Real-time progress tracking shows the status of each research agent with estimated time remaining and detailed step-by-step updates.
 
 ### Comprehensive Report View
-![Report Overview](C:/Users/HP/.gemini/antigravity/brain/8f84277a-3fd8-486c-ba9b-07b60888d0be/uploaded_image_1_1768519735483.png)
+![Report Overview](screenshots/report-view.png)
 
 Generated reports feature a sidebar navigation with sections for company overview, financial highlights, business analysis, news intelligence, sentiment analysis, and competitive landscape.
 
