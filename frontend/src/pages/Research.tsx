@@ -52,7 +52,7 @@ export const Research: React.FC = () => {
     const navigate = useNavigate();
     const [status, setStatus] = useState<ResearchStatus | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false); // Prevent duplicate submissions
+    const hasInitiatedRef = React.useRef(false);
 
     const companyName = searchParams.get('company');
     const ticker = searchParams.get('ticker');
@@ -63,19 +63,15 @@ export const Research: React.FC = () => {
             return;
         }
 
-        // Start research
-        startResearch();
-    }, [companyName, ticker]);
+        // Only start research once
+        if (!hasInitiatedRef.current) {
+            hasInitiatedRef.current = true;
+            startResearch();
+        }
+    }, [companyName, ticker, navigate]);
 
     const startResearch = async () => {
-        // Prevent duplicate submissions
-        if (isSubmitting) {
-            console.log('Research already in progress, ignoring duplicate request');
-            return;
-        }
-
         try {
-            setIsSubmitting(true);
             setError(null);
 
             const response = await apiService.createResearch({
@@ -95,7 +91,6 @@ export const Research: React.FC = () => {
             pollStatus(response.job_id);
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to start research');
-            setIsSubmitting(false);
         }
     };
 
@@ -118,8 +113,14 @@ export const Research: React.FC = () => {
         }
     };
 
-    const formatTimeRemaining = (progress: number): string => {
-        const totalSeconds = Math.max(0, Math.ceil((100 - progress) * 1.5)); // Rough estimate
+    const formatTimeRemaining = (status: ResearchStatus | null): string => {
+        if (!status) return '0:00';
+
+        // Use backend's estimate if available, otherwise fall back to client-side calculation
+        const totalSeconds = status.estimated_time_remaining_seconds !== undefined
+            ? status.estimated_time_remaining_seconds
+            : Math.max(0, Math.ceil((100 - status.progress) * 1.5)); // Rough estimate
+
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -176,7 +177,7 @@ export const Research: React.FC = () => {
                         </div>
 
                         <p className="time-estimate">
-                            Estimated time remaining: {formatTimeRemaining(status?.progress || 0)}
+                            Estimated time remaining: {formatTimeRemaining(status)}
                         </p>
                     </Card>
 

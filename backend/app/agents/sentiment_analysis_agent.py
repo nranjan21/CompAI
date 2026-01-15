@@ -15,6 +15,7 @@ from app.core.mode_config import get_config_value
 from app.core.llm_manager import get_llm_manager
 from app.utils.web_scraper import get_web_scraper
 from app.utils.logger import logger
+from app.utils.cache_manager import get_cache_manager
 
 
 def sentiment_analysis_node(state: CompanyResearchState) -> CompanyResearchState:
@@ -37,13 +38,26 @@ def sentiment_analysis_node(state: CompanyResearchState) -> CompanyResearchState
     logger.info("🚀 Starting SentimentAnalysisNode")
     
     # Initialize
-    reasoning = ReasoningChain("SentimentAnalysisAgent")
     llm_manager = get_llm_manager()
     trust_scorer = get_trust_scorer()
     web_scraper = get_web_scraper()
+    cache_manager = get_cache_manager()
     
     # Get configuration
     mode = state.get("mode", "fast")
+    company_name = state["company_name"]
+    
+    # Step 0: Check cache
+    cache_key = f"sentiment_analysis_{company_name.lower().replace(' ', '_')}_{mode}"
+    cached_result = cache_manager.get(cache_key, ttl_hours=24)
+    if cached_result:
+        logger.info(f"✅ Cache hit for {company_name} sentiment analysis")
+        cached_result["completed_nodes"] = ["sentiment"]
+        return cached_result
+    
+    reasoning = ReasoningChain("SentimentAnalysisAgent")
+    
+    # Get more settings
     sample_size = get_config_value(mode, "sentiment_sample_size", 50)
     detailed_analysis = get_config_value(mode, "sentiment_detailed_analysis", False)
     
@@ -137,17 +151,26 @@ def sentiment_analysis_node(state: CompanyResearchState) -> CompanyResearchState
 
 {context}
 
-Provide:
-1. Overall sentiment (Positive, Negative, Neutral, or Mixed)
-2. Sentiment distribution (percentages adding to 100%)
-3. Overall sentiment score (-1.0 to +1.0)
-4. Key themes (positive and negative)
-5. Representative quotes (with item numbers)
+Provide a comprehensive sentiment analysis with:
+
+1. **Overall sentiment** (Positive, Negative, Neutral, or Mixed)
+2. **Sentiment distribution** (percentages adding to 100%)
+3. **Overall sentiment score** (-1.0 to +1.0, where -1 is very negative, 0 is neutral, +1 is very positive)
+4. **Key themes** (both positive and negative, with prevalence)
+5. **Representative quotes** (with item numbers)
+6. **Detailed reasoning** explaining:
+   - Why you chose this overall sentiment
+   - Any contradictions or mixed signals in the data
+   - Patterns across sources (e.g., news vs social)
+   - Temporal trends if dates are available
+   - Confidence level in the assessment
 
 Consider:
-- News articles have editorial oversight (more reliable)
+- News articles have editorial oversight (more reliable than social media)
 - Look for patterns, not just individual sentiments
 - Explain if sentiment is mixed or contradictory
+- Note if certain themes dominate the conversation
+- Identify if sentiment varies by topic (e.g., positive on products, negative on pricing)
 
 Return in JSON format:
 {{
@@ -161,23 +184,27 @@ Return in JSON format:
   "themes": [
     {{
       "theme": "Theme description",
-      "sentiment": "Positive/Negative",
-      "prevalence": "High/Medium/Low"
+      "sentiment": "Positive/Negative/Neutral",
+      "prevalence": "High/Medium/Low",
+      "explanation": "Why this theme matters"
     }}
   ],
   "representative_quotes": [
     {{
       "item": 1,
       "quote": "Excerpt from item",
-      "sentiment": "Positive/Negative/Neutral"
+      "sentiment": "Positive/Negative/Neutral",
+      "relevance": "Why this quote is representative"
     }}
   ],
-  "reasoning": "Explanation of overall sentiment, especially if mixed or contradictory"
+  "reasoning": "Detailed explanation of overall sentiment. Discuss: (1) Why this sentiment classification? (2) Any contradictions? (3) Patterns observed? (4) Confidence level and why? (5) What's driving the sentiment?",
+  "confidence": "High/Medium/Low",
+  "caveats": ["Any limitations or caveats in the analysis"]
 }}
 
 Return ONLY valid JSON."""
 
-        result = llm_manager.generate(prompt, temperature=0.4, max_tokens=1500)
+        result = llm_manager.generate(prompt, temperature=0.4, max_tokens=2500)
         
         if not result.get("success"):
             return {
@@ -269,12 +296,17 @@ Return ONLY valid JSON."""
         logger.info(f"✅ Sentiment analysis completed: {sentiment_data['overall_sentiment']['value']}, trust {avg_trust:.2f}")
         logger.info(f"📊 Reasoning steps: {len(reasoning.steps)}, Avg confidence: {reasoning.get_average_confidence():.2f}")
         
-        return {
+        result_state = {
             "sentiment_data": sentiment_data,
             "reasoning_chains": {"sentiment": reasoning.to_list()},
             "trust_scores": {"sentiment": avg_trust},
             "completed_nodes": ["sentiment"]
         }
+        
+        # Save to cache
+        cache_manager.set(cache_key, result_state)
+        
+        return result_state
         
     except Exception as e:
         logger.exception("💥 SentimentAnalysisNode failed")

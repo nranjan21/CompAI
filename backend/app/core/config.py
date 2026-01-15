@@ -16,14 +16,16 @@ class LLMConfig(BaseModel):
     """Configuration for LLM providers with fallback chain."""
     
     providers: List[str] = [
-        "groq",
+        "openai",
         "huggingface",
         "cohere",
+        "groq",
         "gemini",
         "together"
     ]
     
     # API Keys
+    openai_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY"))
     google_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("GOOGLE_API_KEY"))
     groq_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("GROQ_API_KEY"))
     huggingface_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("HUGGINGFACE_API_KEY"))
@@ -31,7 +33,8 @@ class LLMConfig(BaseModel):
     cohere_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("COHERE_API_KEY"))
     
     # Model selections
-    huggingface_model: str = Field(default_factory=lambda: os.getenv("HF_MODEL", "mistralai/Mixtral-8x7B-Instruct-v0.1"))
+    openai_model: str = Field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    huggingface_model: str = Field(default_factory=lambda: os.getenv("HF_MODEL", "meta-llama/Meta-Llama-3-8B-Instruct"))
     together_model: str = Field(default_factory=lambda: os.getenv("TOGETHER_MODEL", "meta-llama/Llama-3.3-70B-Instruct-Turbo"))
     
     # Retry settings
@@ -109,6 +112,8 @@ class Config:
         """Returns list of LLM providers with valid API keys."""
         available = []
         
+        if self.llm.openai_api_key:
+            available.append("openai")
         if self.llm.google_api_key:
             available.append("gemini")
         if self.llm.groq_api_key:

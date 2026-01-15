@@ -35,6 +35,7 @@ Examples:
     parser.add_argument("--company", type=str, required=True, help="Company name to research")
     parser.add_argument("--ticker", type=str, default=None, help="Stock ticker symbol")
     parser.add_argument("--no-parallel", action="store_true", help="Run agents sequentially")
+    parser.add_argument("--mode", type=str, choices=["fast", "deep"], default="fast", help="Research mode (fast or deep)")
     parser.add_argument("--output", type=str, default=None, help="Custom output directory")
     
     args = parser.parse_args()
@@ -63,6 +64,7 @@ Examples:
         research_results = orchestrator.conduct_research(
             company_name=args.company,
             ticker=args.ticker,
+            mode=args.mode,
             parallel=not args.no_parallel
         )
         

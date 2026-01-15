@@ -10,7 +10,9 @@ import google.generativeai as genai
 from groq import Groq
 from huggingface_hub import InferenceClient
 from together import Together
+
 import cohere
+import openai
 
 from app.core.config import config
 from app.utils.logger import logger
@@ -19,6 +21,7 @@ from app.utils.logger import logger
 class LLMProvider(str, Enum):
     """Supported LLM providers."""
     GEMINI = "gemini"
+    OPENAI = "openai"
     GROQ = "groq"
     HUGGINGFACE = "huggingface"
     TOGETHER = "together"
@@ -44,6 +47,14 @@ class LLMManager:
                 logger.info("✅ Gemini initialized")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to initialize Gemini: {e}")
+        
+        # Initialize OpenAI
+        if config.llm.openai_api_key:
+            try:
+                self.providers[LLMProvider.OPENAI] = openai.OpenAI(api_key=config.llm.openai_api_key)
+                logger.info("✅ OpenAI initialized")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to initialize OpenAI: {e}")
         
         # Initialize Groq
         if config.llm.groq_api_key:
@@ -111,6 +122,30 @@ class LLMManager:
                     raise
 
     
+
+    
+    def _call_openai(self, prompt: str, **kwargs) -> str:
+        """Call OpenAI with retry logic."""
+        client = self.providers[LLMProvider.OPENAI]
+        max_retries = 2
+        delay = 1.0
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = client.chat.completions.create(
+                    model=config.llm.openai_model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=kwargs.get("temperature", 0.2),
+                    max_tokens=kwargs.get("max_tokens", 4000),
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(f"OpenAI attempt {attempt}/{max_retries} failed: {e}")
+                    time.sleep(delay * attempt)
+                else:
+                    raise
+
     def _call_groq(self, prompt: str, **kwargs) -> str:
         """Call Groq with retry logic for transient failures."""
         client = self.providers[LLMProvider.GROQ]
@@ -201,6 +236,8 @@ class LLMManager:
                 start_time = time.time()
                 if provider == LLMProvider.GEMINI:
                     text = self._call_gemini(prompt, temperature=temperature, max_tokens=max_tokens)
+                elif provider == LLMProvider.OPENAI:
+                    text = self._call_openai(prompt, temperature=temperature, max_tokens=max_tokens)
                 elif provider == LLMProvider.GROQ:
                     text = self._call_groq(prompt, temperature=temperature, max_tokens=max_tokens)
                 elif provider == LLMProvider.HUGGINGFACE:

@@ -74,6 +74,7 @@ class FinancialData(TypedDict, total=False):
     anomalies: Optional[List[Dict[str, Any]]]  # New: Detected anomalies
     risks: Optional[List[str]]
     pdf_path: Optional[str]
+    historical_data: Optional[List[Dict[str, Any]]] # New: Historical financial data
 
 
 class NewsArticle(TypedDict):
@@ -173,7 +174,7 @@ class CompanyResearchState(TypedDict, total=False):
 def create_initial_state(
     company_name: str,
     ticker: Optional[str] = None,
-    mode: Literal["fast", "deep"] = "fast"
+    mode: Literal["fast", "deep"] = "deep"
 ) -> CompanyResearchState:
     """
     Create an initial state for the research workflow.

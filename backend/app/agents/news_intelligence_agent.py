@@ -15,6 +15,7 @@ from app.core.mode_config import get_config_value
 from app.core.llm_manager import get_llm_manager
 from app.utils.web_scraper import get_web_scraper
 from app.utils.logger import logger
+from app.utils.cache_manager import get_cache_manager
 
 
 def news_intelligence_node(state: CompanyResearchState) -> CompanyResearchState:
@@ -37,13 +38,24 @@ def news_intelligence_node(state: CompanyResearchState) -> CompanyResearchState:
     logger.info("🚀 Starting NewsIntelligenceNode")
     
     # Initialize
-    reasoning = ReasoningChain("NewsIntelligenceAgent")
     web_scraper = get_web_scraper()
     llm_manager = get_llm_manager()
     trust_scorer = get_trust_scorer()
+    cache_manager = get_cache_manager()
     
     # Get configuration
     mode = state.get("mode", "fast")
+    company_name = state["company_name"]
+    
+    # Step 0: Check cache
+    cache_key = f"news_intelligence_{company_name.lower().replace(' ', '_')}_{mode}"
+    cached_result = cache_manager.get(cache_key, ttl_hours=24)
+    if cached_result:
+        logger.info(f"✅ Cache hit for {company_name} news research")
+        cached_result["completed_nodes"] = ["news"]
+        return cached_result
+    
+    reasoning = ReasoningChain("NewsIntelligenceAgent")
     months_back = get_config_value(mode, "news_months_back", 6)
     max_articles = get_config_value(mode, "news_max_articles", 20)
     detailed_events = get_config_value(mode, "news_detailed_events", False)
@@ -313,7 +325,7 @@ Return ONLY valid JSON."""
         logger.info(f"✅ News research completed: {len(news_articles)} articles, avg trust {avg_trust:.2f}")
         logger.info(f"📊 Reasoning steps: {len(reasoning.steps)}, Avg confidence: {reasoning.get_average_confidence():.2f}")
         
-        return {
+        result_state = {
             "news_data": news_data,
             "reasoning_chains": {"news": reasoning.to_list()},
             "sources": {"news": sources_list},
@@ -321,6 +333,11 @@ Return ONLY valid JSON."""
             "ambiguities": ambiguities,
             "completed_nodes": ["news"]
         }
+        
+        # Save to cache
+        cache_manager.set(cache_key, result_state)
+        
+        return result_state
         
     except Exception as e:
         logger.exception("💥 NewsIntelligenceNode failed")

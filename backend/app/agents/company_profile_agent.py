@@ -15,6 +15,7 @@ from app.core.mode_config import get_config_value
 from app.core.llm_manager import get_llm_manager
 from app.utils.web_scraper import get_web_scraper
 from app.utils.logger import logger
+from app.utils.cache_manager import get_cache_manager
 from datetime import datetime
 
 
@@ -50,9 +51,19 @@ def company_profile_node(state: CompanyResearchState) -> CompanyResearchState:
     web_scraper = get_web_scraper()
     llm_manager = get_llm_manager()
     trust_scorer = get_trust_scorer()
+    cache_manager = get_cache_manager()
     
     company_name = state["company_name"]
     ticker = state.get("ticker")
+    
+    # Step 0: Check cache
+    cache_key = f"company_profile_{company_name.lower().replace(' ', '_')}_{mode}"
+    cached_result = cache_manager.get(cache_key, ttl_hours=24)
+    if cached_result:
+        logger.info(f"✅ Cache hit for {company_name} profile")
+        # Ensure we update completing node status while returning cached data
+        cached_result["completed_nodes"] = ["company_profile"]
+        return cached_result
     
     try:
         # Step 1: Find company website
@@ -355,7 +366,7 @@ Return ONLY valid JSON, no additional text."""
         logger.info(f"✅ Company profile completed with trust score {aggregate_trust:.2f}")
         logger.info(f"📊 Reasoning steps: {len(reasoning.steps)}, Avg confidence: {reasoning.get_average_confidence():.2f}")
         
-        return {
+        result_state = {
             "company_profile": company_profile,
             "reasoning_chains": {"company_profile": reasoning.to_list()},
             "sources": {"company_profile": sources_list},
@@ -363,6 +374,11 @@ Return ONLY valid JSON, no additional text."""
             "ambiguities": ambiguities,
             "completed_nodes": ["company_profile"]
         }
+        
+        # Save to cache
+        cache_manager.set(cache_key, result_state)
+        
+        return result_state
         
     except Exception as e:
         logger.exception("💥 CompanyProfileNode failed")

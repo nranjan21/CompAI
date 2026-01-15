@@ -167,26 +167,59 @@ def synthesis_node(state: CompanyResearchState) -> CompanyResearchState:
         # Financial Data
         if financial_data:
             financial_info = f"**Financial Highlights:**\n"
-            fiscal_year = extract_value(financial_data, 'fiscal_year')
-            revenue = extract_value(financial_data, 'revenue')
-            net_income = extract_value(financial_data, 'net_income')
-            total_assets = extract_value(financial_data, 'total_assets')
-            financial_health = extract_value(financial_data, 'financial_health')
             
-            if fiscal_year != 'N/A':
-                financial_info += f"- Fiscal Year: {fiscal_year}\n"
-            if revenue != 'N/A':
-                financial_info += f"- Revenue: ${revenue}M\n"
-            if net_income != 'N/A':
-                financial_info += f"- Net Income: ${net_income}M\n"
-            if total_assets != 'N/A':
-                financial_info += f"- Total Assets: ${total_assets}M\n"
-            if financial_health != 'N/A':
-                financial_info += f"- Financial Health: {financial_health}\n"
+            # Helper to extract and format TrustedValue
+            def get_val(k):
+                v = extract_value(financial_data, k)
+                return v if v != 'N/A' else None
+
+            fiscal_year = get_val('fiscal_year')
+            revenue = get_val('revenue')
+            net_income = get_val('net_income')
+            total_assets = get_val('total_assets')
+            total_liabilities = get_val('total_liabilities')
+            financial_health = get_val('financial_health')
             
-            # Only add if we have at least some financial data
-            if any(v != 'N/A' for v in [fiscal_year, revenue, net_income, financial_health]):
-                context_parts.append(financial_info)
+            if fiscal_year: financial_info += f"- Fiscal Year: {fiscal_year}\n"
+            if revenue: financial_info += f"- Revenue: ${revenue}M\n"
+            if net_income: financial_info += f"- Net Income: ${net_income}M\n"
+            if total_assets: financial_info += f"- Total Assets: ${total_assets}M\n"
+            if total_liabilities: financial_info += f"- Total Liabilities: ${total_liabilities}M\n"
+            if financial_health: financial_info += f"- Financial Health: {financial_health}\n"
+            
+            # Add Key Metrics and Growth Rates
+            key_metrics = financial_data.get('key_metrics', {})
+            if key_metrics:
+                financial_info += "- Key Ratios & Margins:\n"
+                for m, v in key_metrics.items():
+                    val = extract_value(key_metrics, m)
+                    if val != 'N/A':
+                        m_name = m.replace('_', ' ').title()
+                        if any(x in m.lower() for x in ['margin', 'roe', 'roa', 'growth']):
+                            financial_info += f"  * {m_name}: {float(val)*100:.2f}%\n"
+                        else:
+                            financial_info += f"  * {m_name}: {val}\n"
+                            
+            growth_rates = financial_data.get('growth_rates', {})
+            if growth_rates:
+                financial_info += "- Growth Rates:\n"
+                for m, v in growth_rates.items():
+                    val = extract_value(growth_rates, m)
+                    if val != 'N/A':
+                        m_name = m.replace('_', ' ').title()
+                        financial_info += f"  * {m_name}: {float(val)*100:.2f}%\n"
+
+            # Check if we have multiple years (historical_data)
+            historical = financial_data.get('historical_data', [])
+            if historical:
+                financial_info += "\n**Historical Trends:**\n"
+                for year_data in historical:
+                    y = year_data.get('fiscal_year', 'Unknown')
+                    rev = year_data.get('revenue', 'N/A')
+                    ni = year_data.get('net_income', 'N/A')
+                    financial_info += f"- FY {y}: Revenue ${rev}M, Net Income ${ni}M\n"
+            
+            context_parts.append(financial_info)
         
         # News & Events
         if news_data and news_data.get("articles"):
@@ -285,37 +318,102 @@ Create a detailed Markdown report with the following sections:
 Provide a concise 3-4 sentence overview of {company_name}, their business, financial position, and outlook.
 
 ## Company Overview
-Detailed description of what the company does, their industry, products/services, and market position.
+Detailed description of what the company does, their industry, products/services, and market position. Include founding information, headquarters location, and key historical milestones if available.
 
 ## Financial Highlights
-Key financial metrics, trends, and health assessment. Include specific numbers where available.
+
+This is a CRITICAL section. Do NOT just list numbers - provide thorough analysis and interpretation.
+
+### Performance Analysis
+- Analyze revenue trends: Is revenue growing or declining? At what rate? What does this indicate?
+- Evaluate profitability: How are margins trending? Are they improving or compressing?
+- Assess financial health: Strong balance sheet? High debt? Good liquidity?
+- Examine growth rates: Year-over-year growth in revenue, earnings, etc.
+
+### Key Financial Metrics
+Present the actual numbers in a clean, user-friendly format. 
+**CRITICAL**: Avoid extremely wide tables. If there are multiple years, use a **transposed table** (Metrics as Rows, Years as Columns).
+Group metrics into logical categories:
+1. **Income Statement** (Revenue, Net Income, Growth %)
+2. **Balance Sheet** (Total Assets, Total Liabilities, Debt-to-Equity)
+3. **Efficiency & Profitability** (Margins, ROE, ROA)
+
+Use visual indicators like 🟢 for growth/improvement and 🔴 for decline/risk.
+Format numbers for readability (e.g., "$240.5B" instead of "240500M").
+
+### Positive Indicators 🟢
+Explicitly flag positive financial aspects:
+- Strong revenue growth
+- Improving margins
+- Solid cash position
+- Decreasing debt levels
+- Positive earnings surprises
+- Market share gains
+- Any other positive trends
+
+### Risk Flags 🔴
+Explicitly flag concerning financial aspects:
+- Declining revenues
+- Shrinking margins
+- High debt levels
+- Negative cash flow
+- Losses or declining profits
+- Any concerning trends
+
+### Financial Observations
+- What stands out about this company's financials?
+- Any unusual patterns or anomalies?
+- How do they compare to industry benchmarks?
+- What's missing from the data?
 
 ## Business & Industry Analysis
-Market context, competitive positioning, and industry trends.
+Market context, competitive positioning, and industry trends. How is the company positioned relative to competitors?
 
 ## Recent News & Key Events
-Major recent events,  product launches, strategic moves. Organize chronologically if possible.
+Major recent events, product launches, strategic moves, regulatory changes. Organize chronologically with dates where possible. Include both positive and negative news.
 
 ## Public & Social Sentiment
-Overview of public perception, sentiment trends, and notable themes.
+Overview of public perception, sentiment trends, and notable themes. What are people saying about the company?
 
 ## Opportunities & Risks
-Analysis of growth opportunities and potential risks/challenges.
+
+### Growth Opportunities
+- Market expansion possibilities
+- New products/services
+- Strategic initiatives
+- Industry tailwinds
+- Competitive advantages
+
+### Risk Factors
+- Competitive threats
+- Regulatory challenges
+- Market headwinds
+- Operational risks
+- Financial vulnerabilities
+- Any red flags from the data
 
 ## Key Observations
-Important insights, uncertainties, data gaps, or items requiring further investigation.
+Important insights, uncertainties, data gaps, or items requiring further investigation. Be specific about:
+- What additional data would be valuable?
+- What assumptions were made?
+- What conflicting information was found?
+- What deserves closer monitoring?
 
 **Important Guidelines:**
-- Be factual and specific - cite actual numbers and data points
-- If certain information is missing, note it explicitly
-- Maintain a professional, analytical tone
-- Use markdown formatting (headers, lists, bold for emphasis)
-- Keep each section focused and concise
-- If data quality is low or contradictory, mention it
+- **CRITICAL**: In the Financial Highlights section, ANALYZE and INTERPRET the numbers, don't just list them
+- Flag positive aspects with 🟢 and risks with 🔴 for easy scanning
+- Be factual and specific - cite actual numbers and data points with units (M for millions, B for billions)
+- If certain information is missing, note it explicitly (e.g., "Profitability data not available")
+- Maintain a professional, analytical tone but make it insightful
+- Use markdown formatting (headers, lists, bold for emphasis, tables for financial data)
+- Keep each section focused but thorough
+- If data quality is low or contradictory, mention it and explain why
+- Calculate and show growth rates, margins, and ratios when possible
+- Compare metrics across time periods when data allows
 
 Write the complete report now in Markdown format:"""
 
-        result = llm_manager.generate(prompt, temperature=0.6, max_tokens=3000)
+        result = llm_manager.generate(prompt, temperature=0.2, max_tokens=5000)
         
         if not result.get("success"):
             return {

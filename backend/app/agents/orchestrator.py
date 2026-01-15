@@ -199,8 +199,9 @@ class OrchestratorAgent:
         self,
         company_name: str,
         ticker: str = None,
+        mode: Literal["fast", "deep"] = "fast",
         parallel: bool = True,  # Ignored, always uses LangGraph
-        progress_callback=None  # Not yet implemented
+        progress_callback=None
     ) -> dict:
         """
         Execute research using LangGraph workflow.
@@ -209,39 +210,106 @@ class OrchestratorAgent:
             company_name: Name of the company
             ticker: Optional ticker symbol
             parallel: Ignored (LangGraph handles parallelism)
-            progress_callback: Not yet implemented
+            progress_callback: Callback function(agent_name: str, progress: int)
             
         Returns:
             Dictionary with research results (converted from state)
         """
-        # Determine mode (default to fast for now)
-        # TODO: Add mode parameter
-        mode = "fast"
-        
-        # Execute workflow  
-        final_state = execute_research(company_name, ticker, mode)
-        
-        # Convert state to old format for compatibility
-        return {
-            "company_name": company_name,
-            "ticker": ticker,
-            "timestamp": final_state.get("timestamp"),
-            "profile": final_state.get("company_profile"),
-            "financial": final_state.get("financial_data"),
-            "news": final_state.get("news_data"),
-            "sentiment": final_state.get("sentiment_data"),
-            "competitive": final_state.get("competitive_data"),
-            "synthesis": final_state.get("synthesis_result"),
-            "reasoning_chains": final_state.get("reasoning_chains", {}),
-            "trust_scores": final_state.get("trust_scores", {}),
-            "sources": final_state.get("sources", {}),
-            "completed_nodes": final_state.get("completed_nodes", []),
-            "errors": final_state.get("errors", []),
-            "warnings": final_state.get("warnings", []),
-            "ambiguities": final_state.get("ambiguities", []),
-            "duration_seconds": final_state.get("duration_seconds"),
-            "status": "completed" if not final_state.get("errors") else "completed_with_errors"
+        # Progress tracking mapping
+        progress_map = {
+            "company_profile": (10, "Company Profile Agent"),
+            "financial": (30, "Financial Research Agent"),
+            "news": (50, "News Intelligence Agent"),
+            "competitive": (70, "Competitive Intelligence Agent"),
+            "sentiment": (85, "Sentiment Analysis Agent"),
+            "synthesis": (95, "Synthesis Engine")
         }
+        
+        # Create initial state
+        initial_state = create_initial_state(company_name, ticker, mode)
+        
+        # Create and compile workflow
+        workflow = create_research_workflow(mode)
+        app = workflow.compile()
+        
+        # Execute workflow with progress tracking
+        try:
+            # Initial progress
+            if progress_callback:
+                progress_callback("Starting Research", 0)
+            
+            # Stream the workflow execution to track node completion
+            completed_nodes = set()
+            
+            for event in app.stream(initial_state):
+                # Each event contains the node name and updated state
+                for node_name, node_state in event.items():
+                    if node_name not in completed_nodes:
+                        completed_nodes.add(node_name)
+                        
+                        # Update progress based on node completion
+                        if node_name in progress_map and progress_callback:
+                            progress_pct, agent_name = progress_map[node_name]
+                            progress_callback(agent_name, progress_pct)
+                            logger.info(f"✓ {agent_name} completed - {progress_pct}%")
+            
+            # Get final state
+            final_state = app.invoke(initial_state)
+            
+            # Final progress update
+            if progress_callback:
+                progress_callback("Completed", 100)
+            
+            # Add completion metadata
+            from datetime import datetime
+            final_state["end_time"] = datetime.now().isoformat()
+            
+            if final_state.get("start_time"):
+                start = datetime.fromisoformat(final_state["start_time"])
+                end = datetime.fromisoformat(final_state["end_time"])
+                final_state["duration_seconds"] = (end - start).total_seconds()
+            
+            logger.info(f"✅ Research completed for {company_name}")
+            logger.info(f"⏱️ Duration: {final_state.get('duration_seconds', 0):.2f} seconds")
+            logger.info(f"📊 Completed nodes: {final_state.get('completed_nodes', [])}")
+            logger.info(f"❌ Errors: {len(final_state.get('errors', []))}")
+            logger.info(f"⚠️ Warnings: {len(final_state.get('warnings', []))}")
+            
+            # Convert state to old format for compatibility
+            return {
+                "company_name": company_name,
+                "ticker": ticker,
+                "timestamp": final_state.get("timestamp"),
+                "profile": final_state.get("company_profile"),
+                "financial": final_state.get("financial_data"),
+                "news": final_state.get("news_data"),
+                "sentiment": final_state.get("sentiment_data"),
+                "competitive": final_state.get("competitive_data"),
+                "synthesis": final_state.get("synthesis_result"),
+                "reasoning_chains": final_state.get("reasoning_chains", {}),
+                "trust_scores": final_state.get("trust_scores", {}),
+                "sources": final_state.get("sources", {}),
+                "completed_nodes": final_state.get("completed_nodes", []),
+                "mode": final_state.get("mode", "fast"),
+                "errors": final_state.get("errors", []),
+                "warnings": final_state.get("warnings", []),
+                "ambiguities": final_state.get("ambiguities", []),
+                "duration_seconds": final_state.get("duration_seconds"),
+                "status": "completed" if not final_state.get("errors") else "completed_with_errors"
+            }
+            
+        except Exception as e:
+            logger.exception(f"💥 Research workflow failed for {company_name}")
+            if progress_callback:
+                progress_callback("Failed", 0)
+            
+            return {
+                "company_name": company_name,
+                "ticker": ticker,
+                "status": "failed",
+                "errors": [str(e)],
+                "completed_nodes": []
+            }
     
     def conduct_research(self, *args, **kwargs):
         """Alias for execute() for backward compatibility."""

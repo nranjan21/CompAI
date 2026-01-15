@@ -23,7 +23,9 @@ export interface ResearchStatus {
     company_name: string;
     ticker?: string;
     created_at: string;
+    started_at?: string;
     completed_at?: string;
+    estimated_time_remaining_seconds?: number;
     error?: string;
     report_id?: string;
 }

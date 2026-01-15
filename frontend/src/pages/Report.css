@@ -18,10 +18,10 @@
 
 .header-content {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-md);
-    flex-wrap: wrap;
+    gap: var(--space-sm);
     margin-bottom: var(--space-sm);
 }
 
@@ -41,10 +41,17 @@
     font-weight: var(--weight-semibold);
 }
 
+.user-search-hint {
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+    margin: var(--space-xs) 0 0 0;
+    font-style: italic;
+}
+
 .report-date {
     font-size: var(--text-small);
     color: var(--color-text-secondary);
-    margin: 0;
+    margin: var(--space-xs) 0 0 0;
 }
 
 /* Action Bar */
@@ -434,6 +441,57 @@
 .markdown-content em {
     font-style: italic;
     color: var(--color-text-secondary);
+}
+
+/* Tables - Better styling for financial metrics */
+.markdown-content table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: var(--space-xl) 0;
+    background: #F9FAFB;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border-light);
+}
+
+.markdown-content thead {
+    background: linear-gradient(135deg, var(--color-purple-primary) 0%, #7C3AED 100%);
+}
+
+.markdown-content th {
+    padding: var(--space-md) var(--space-lg);
+    text-align: left;
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    color: white;
+    border: none;
+}
+
+.markdown-content td {
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--color-border-light);
+    font-size: var(--text-body);
+    color: var(--color-text-dark);
+}
+
+.markdown-content tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.markdown-content tbody tr:hover {
+    background: white;
+}
+
+.markdown-content td:first-child {
+    font-weight: var(--weight-medium);
+    color: var(--color-text-dark);
+}
+
+.markdown-content td:last-child {
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-weight: var(--weight-semibold);
+    color: var(--color-purple-primary);
 }
 
 /* Error Card */

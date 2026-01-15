@@ -173,22 +173,49 @@ class ReportGenerator:
             
             # Helper to format values
             def format_val(val, prefix="", suffix=""):
+                if isinstance(val, dict) and "value" in val:
+                    val = val["value"]
+                    
                 if val is None or val == "null" or val == "None" or val == "N/A":
                     return "N/A"
+                
+                # Format large numbers
+                if isinstance(val, (int, float)) and val > 1000:
+                    if val > 1000000:
+                        return f"{prefix}{val/1000000:.2f}T{suffix}"
+                    elif val > 1000:
+                        return f"{prefix}{val/1000:.2f}B{suffix}"
+                
                 return f"{prefix}{val}{suffix}"
 
             report.append(f"**Fiscal Year:** {format_val(financial.get('fiscal_year'))}")
-            report.append(f"**Revenue:** {format_val(financial.get('revenue'), '$', ' Million')}")
-            report.append(f"**Net Income:** {format_val(financial.get('net_income'), '$', ' Million')}")
-            report.append(f"**Total Assets:** {format_val(financial.get('total_assets'), '$', ' Million')}")
+            report.append(f"**Revenue:** {format_val(financial.get('revenue'), '$', 'M')}")
+            report.append(f"**Net Income:** {format_val(financial.get('net_income'), '$', 'M')}")
+            report.append(f"**Total Assets:** {format_val(financial.get('total_assets'), '$', 'M')}")
+            report.append(f"**Total Liabilities:** {format_val(financial.get('total_liabilities'), '$', 'M')}")
             report.append(f"**Financial Health:** {format_val(financial.get('financial_health'))}\n")
             
             key_metrics = financial.get('key_metrics', {})
             if key_metrics:
-                report.append("**Key Metrics:**")
-                for metric, value in key_metrics.items():
-                    val_str = "N/A" if value is None else str(value)
-                    report.append(f"- {metric.replace('_', ' ').title()}: {val_str}")
+                report.append("**Key Ratios & Margins:**")
+                for metric, val_obj in key_metrics.items():
+                    val = val_obj.get('value') if isinstance(val_obj, dict) else val_obj
+                    if val is not None:
+                        m_name = metric.replace('_', ' ').title()
+                        if any(x in metric.lower() for x in ['margin', 'roe', 'roa']):
+                            report.append(f"- {m_name}: {float(val)*100:.2f}%")
+                        else:
+                            report.append(f"- {m_name}: {val}")
+                report.append("")
+                
+            growth_rates = financial.get('growth_rates', {})
+            if growth_rates:
+                report.append("**Growth Rates:**")
+                for metric, val_obj in growth_rates.items():
+                    val = val_obj.get('value') if isinstance(val_obj, dict) else val_obj
+                    if val is not None:
+                        m_name = metric.replace('_', ' ').title()
+                        report.append(f"- {m_name}: {float(val)*100:.2f}%")
                 report.append("\n")
         
         # News & Market Activity

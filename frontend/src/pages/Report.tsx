@@ -13,7 +13,7 @@ const parseMarkdown = (text: string): string => {
     let html = text;
 
     // Base URL for images served from backend
-    const API_BASE = 'http://localhost:8000';
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
     // Headers
     html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
@@ -88,6 +88,23 @@ interface Section {
     body: string;
 }
 
+// Extract actual company name from report content
+const extractActualCompanyName = (content: string): string | null => {
+    // Look for "Company Name - Company Research Report" on line 6
+    const match = content.match(/^# (.+) - Company Research Report$/m);
+    if (match) {
+        return match[1].trim();
+    }
+    // Fallback: look for first H1 that's not the comprehensive report header
+    const lines = content.split('\n');
+    for (const line of lines) {
+        if (line.startsWith('# ') && !line.includes('Comprehensive Research Report')) {
+            return line.replace(/^# /, '').replace(/ - Company Research Report$/, '').trim();
+        }
+    }
+    return null;
+};
+
 const parseSections = (content: string): Section[] => {
     // Split by any header level to find the first real section
     const headerMatches = content.match(/^#+ .+/gm);
@@ -114,7 +131,13 @@ const parseSections = (content: string): Section[] => {
             title,
             body
         };
-    }).filter(section => section.body.length > 10 && section.title); // Filter out very short or untitled sections
+    }).filter(section => {
+        // Filter out very short or untitled sections
+        // Also filter out "Comprehensive Research Report" section
+        return section.body.length > 10 &&
+            section.title &&
+            !section.title.toLowerCase().includes('comprehensive research report');
+    });
 };
 
 
@@ -183,6 +206,9 @@ export const Report: React.FC = () => {
         s.title.toLowerCase().includes('summary')
     );
 
+    // Extract actual company name from report content
+    const actualCompanyName = extractActualCompanyName(report.content);
+
     const filteredSections = sections.filter(s => s.id !== executiveSummary?.id);
 
     return (
@@ -196,16 +222,26 @@ export const Report: React.FC = () => {
                     {/* Header */}
                     <div className="report-header-section">
                         <div className="header-content">
-                            <h1 className="company-title">{report.company_name}</h1>
-                            {report.ticker && <span className="ticker-badge">{report.ticker}</span>}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <h1 className="company-title">
+                                    {actualCompanyName || report.company_name}
+                                </h1>
+                                {report.ticker && <span className="ticker-badge">{report.ticker}</span>}
+                            </div>
+                            {actualCompanyName && actualCompanyName !== report.company_name && (
+                                <p className="user-search-hint">Searched for: {report.company_name}</p>
+                            )}
+                            <p className="report-date">
+                                Generated {new Date(report.created_at).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                })} at {new Date(report.created_at).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </p>
                         </div>
-                        <p className="report-date">
-                            Generated {new Date(report.created_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                            })}
-                        </p>
                     </div>
 
                     {/* Action Bar */}

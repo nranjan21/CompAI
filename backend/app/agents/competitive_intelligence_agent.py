@@ -15,6 +15,7 @@ from app.core.mode_config import get_config_value
 from app.core.llm_manager import get_llm_manager
 from app.utils.web_scraper import get_web_scraper
 from app.utils.logger import logger
+from app.utils.cache_manager import get_cache_manager
 
 
 def competitive_intelligence_node(state: CompanyResearchState) -> CompanyResearchState:
@@ -37,13 +38,24 @@ def competitive_intelligence_node(state: CompanyResearchState) -> CompanyResearc
     logger.info("🚀 Starting CompetitiveIntelligenceNode")
     
     # Initialize
-    reasoning = ReasoningChain("CompetitiveIntelligenceAgent")
     web_scraper = get_web_scraper()
     llm_manager = get_llm_manager()
     trust_scorer = get_trust_scorer()
+    cache_manager = get_cache_manager()
     
     # Get configuration
     mode = state.get("mode", "fast")
+    company_name = state["company_name"]
+    
+    # Step 0: Check cache
+    cache_key = f"competitive_intelligence_{company_name.lower().replace(' ', '_')}_{mode}"
+    cached_result = cache_manager.get(cache_key, ttl_hours=24)
+    if cached_result:
+        logger.info(f"✅ Cache hit for {company_name} competitive intelligence")
+        cached_result["completed_nodes"] = ["competitive"]
+        return cached_result
+    
+    reasoning = ReasoningChain("CompetitiveIntelligenceAgent")
     max_competitors = get_config_value(mode, "competitive_max_competitors", 5)
     niche_markets = get_config_value(mode, "competitive_niche_markets", False)
     detailed_swot = get_config_value(mode, "competitive_detailed_swot", False)
@@ -290,7 +302,7 @@ Base your analysis ONLY on the provided sources. Return ONLY valid JSON."""
         logger.info(f"✅ Competitive intelligence completed: {len(competitors)} competitors, trust {avg_trust:.2f}")
         logger.info(f"📊 Reasoning steps: {len(reasoning.steps)}, Avg confidence: {reasoning.get_average_confidence():.2f}")
         
-        return {
+        result_state = {
             "competitive_data": competitive_data,
             "reasoning_chains": {"competitive": reasoning.to_list()},
             "sources": {"competitive": sources_list},
@@ -298,6 +310,11 @@ Base your analysis ONLY on the provided sources. Return ONLY valid JSON."""
             "ambiguities": ambiguities,
             "completed_nodes": ["competitive"]
         }
+        
+        # Save to cache
+        cache_manager.set(cache_key, result_state)
+        
+        return result_state
         
     except Exception as e:
         logger.exception("💥 CompetitiveIntelligenceNode failed")
