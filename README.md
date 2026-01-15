@@ -4,25 +4,6 @@ An advanced multi-agent research system with a modern web interface that autonom
 
 ---
 
-## 🖼️ User Interface
-
-### Home Page - Research Input
-![CompAI Home Page](screenshots/home-page.png)
-
-The landing page features a clean, modern interface where users can enter any company name to begin deep research analysis.
-
-### Research Progress Tracking
-![Research Progress](screenshots/research-progress.png)
-
-Real-time progress tracking shows the status of each research agent with estimated time remaining and detailed step-by-step updates.
-
-### Comprehensive Report View
-![Report Overview](screenshots/report-view.png)
-
-Generated reports feature a sidebar navigation with sections for company overview, financial highlights, business analysis, news intelligence, sentiment analysis, and competitive landscape.
-
----
-
 ## 🏗️ Architecture: Full-Stack AI Research Platform
 
 ### Backend: LangGraph-Based Agent System
@@ -356,3 +337,25 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ---
 
 **Built with**: LangGraph, FastAPI, React, Vite, ScrapingBee, SerpAPI, and Multiple LLM Providers
+
+## 📸 Screenshots
+
+### Home Page
+<img src="screenshots/home-page.png" alt="CompAI Home Page" width="600">
+
+* Clean, modern interface for entering company names to begin research*
+
+### Features-Overview
+<img src="screenshots/features-overview.png" alt="CompAI Features Overview" width="600">
+
+* Overview of the features of the application*
+
+### Research Progress
+<img src="screenshots/research-progress.png" alt="Research Progress Tracking" width="600">
+
+* Real-time progress tracking with detailed agent status and estimated time remaining*
+
+### Report View
+<img src="screenshots/report-view.png" alt="Comprehensive Report" width="600">
+
+* Interactive report with sidebar navigation and comprehensive company analysis*
