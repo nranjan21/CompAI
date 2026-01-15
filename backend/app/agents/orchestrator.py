@@ -1,219 +1,252 @@
 """
-Orchestrator Agent - Coordinates all research agents to conduct comprehensive company research.
+LangGraph Orchestrator - State-based Multi-Agent Research Workflow
 
-Workflow:
-1. Initialize all agents
-2. Run CompanyProfileAgent to get basic info
-3. Run Financial, News, and Competitive agents in parallel (simulated)
-4. Run SentimentAnalysisAgent on news data
-5. Aggregate all results
-6. Track progress and handle errors
+Coordinates all research agents using LangGraph's StateGraph for explicit
+workflow management, parallel execution, and state-based communication.
+
+This replaces the old class-based OrchestratorAgent with a functional LangGraph approach.
 """
 
-from typing import Dict, Any, Optional
-from datetime import datetime
-from app.agents.base_agent import BaseAgent
-from app.agents.company_profile_agent import CompanyProfileAgent
-from app.agents.financial_research_agent import FinancialResearchAgent
-from app.agents.news_intelligence_agent import NewsIntelligenceAgent
-from app.agents.sentiment_analysis_agent import SentimentAnalysisAgent
-from app.agents.competitive_intelligence_agent import CompetitiveIntelligenceAgent
+from typing import Literal
+from langgraph.graph import StateGraph, END
+from app.core.state_schema import CompanyResearchState, create_initial_state
+from app.agents.company_profile_agent import company_profile_node
+from app.agents.financial_research_agent import financial_research_node
+from app.agents.news_intelligence_agent import news_intelligence_node
+from app.agents.sentiment_analysis_agent import sentiment_analysis_node
+from app.agents.competitive_intelligence_agent import competitive_intelligence_node
+from app.synthesis.insight_synthesizer import synthesis_node
 from app.utils.logger import logger
 
 
-class OrchestratorAgent(BaseAgent):
-    """Main orchestrator that coordinates all research agents."""
+def should_continue_to_synthesis(state: CompanyResearchState) -> str:
+    """
+    Conditional edge function to determine if we should proceed to synthesis.
+    
+    Waits for all parallel agents to complete before synthesis.
+    
+    Args:
+        state: Current research state
+        
+    Returns:
+        "synthesis" if ready, "wait" otherwise
+    """
+    completed = state.get("completed_nodes", [])
+    
+    # Required nodes for synthesis
+    required_nodes = {"company_profile", "financial", "news", "competitive"}
+    completed_set = set(completed)
+    
+    # Sentiment is optional (runs after news)
+    if "sentiment" in completed_set:
+        # If sentiment is done, check if all others are too
+        if required_nodes.issubset(completed_set):
+            return "synthesis"
+    
+    # Check if all required nodes are done (sentiment may still be running)
+    if required_nodes.issubset(completed_set):
+        #  If news is done but sentiment isn't, wait for sentiment
+        if "news" in completed_set and "sentiment" not in completed_set:
+            return "wait"
+        # Otherwise proceed
+        return "synthesis"
+    
+    return "wait"
+
+
+def create_research_workflow(mode: Literal["fast", "deep"] = "fast") -> StateGraph:
+    """
+    Create the LangGraph research workflow.
+    
+    Workflow structure:
+    1. START → CompanyProfile
+    2. CompanyProfile → [Financial, News, Competitive] (parallel)
+    3. News → Sentiment
+    4. All agents → Synthesis (conditional, waits for all to complete)
+    5. Synthesis → END
+    
+    Args:
+        mode: Research mode ("fast" or "deep")
+        
+    Returns:
+        Compiled StateGraph workflow
+    """
+    logger.info(f"🏗️ Creating research workflow in {mode} mode")
+    
+    # Create state graph
+    workflow = StateGraph(CompanyResearchState)
+    
+    # Add nodes
+    workflow.add_node("company_profile", company_profile_node)
+    workflow.add_node("financial", financial_research_node)
+    workflow.add_node("news", news_intelligence_node)
+    workflow.add_node("sentiment", sentiment_analysis_node)
+    workflow.add_node("competitive", competitive_intelligence_node)
+    workflow.add_node("synthesis", synthesis_node)
+    
+    # Set entry point
+    workflow.set_entry_point("company_profile")
+    
+    # Company profile must complete first, then fan out to parallel agents
+    workflow.add_edge("company_profile", "financial")
+    workflow.add_edge("company_profile", "news")
+    workflow.add_edge("company_profile", "competitive")
+    
+    # News feeds into sentiment (sentiment needs news data)
+    workflow.add_edge("news", "sentiment")
+    
+    # All agents converge to synthesis (but only when all are done)
+    # We use conditional edges that check if all nodes are complete
+    workflow.add_conditional_edges(
+        "financial",
+        should_continue_to_synthesis,
+        {
+            "synthesis": "synthesis",
+            "wait": END  # Temporary end, synthesis will be triggered by last completing node
+        }
+    )
+    
+    workflow.add_conditional_edges(
+        "sentiment",
+        should_continue_to_synthesis,
+        {
+            "synthesis": "synthesis",
+            "wait": END
+        }
+    )
+    
+    workflow.add_conditional_edges(
+        "competitive",
+        should_continue_to_synthesis,
+        {
+            "synthesis": "synthesis",
+            "wait": END
+        }
+    )
+    
+    # Synthesis is the final step
+    workflow.add_edge("synthesis", END)
+    
+    return workflow
+
+
+def execute_research(
+    company_name: str,
+    ticker: str = None,
+    mode: Literal["fast", "deep"] = "fast"
+) -> CompanyResearchState:
+    """
+    Execute the complete research workflow for a company.
+    
+    Args:
+        company_name: Name of the company to research
+        ticker: Optional stock ticker symbol
+        mode: Research mode ("fast" or "deep")
+        
+    Returns:
+        Final CompanyResearchState with all results
+    """
+    logger.info(f"🚀 Starting research for {company_name} in {mode} mode")
+    
+    # Create initial state
+    initial_state = create_initial_state(company_name, ticker, mode)
+    
+    # Create and compile workflow
+    workflow = create_research_workflow(mode)
+    app = workflow.compile()
+    
+    # Execute workflow
+    try:
+        # LangGraph will execute the workflow
+        # It handles parallel execution and state updates automatically
+        final_state = app.invoke(initial_state)
+        
+        # Add completion metadata
+        from datetime import datetime
+        final_state["end_time"] = datetime.now().isoformat()
+        
+        if final_state.get("start_time"):
+            start = datetime.fromisoformat(final_state["start_time"])
+            end = datetime.fromisoformat(final_state["end_time"])
+            final_state["duration_seconds"] = (end - start).total_seconds()
+        
+        logger.info(f"✅ Research completed for {company_name}")
+        logger.info(f"⏱️ Duration: {final_state.get('duration_seconds', 0):.2f} seconds")
+        logger.info(f"📊 Completed nodes: {final_state.get('completed_nodes', [])}")
+        logger.info(f"❌ Errors: {len(final_state.get('errors', []))}")
+        logger.info(f"⚠️ Warnings: {len(final_state.get('warnings', []))}")
+        
+        return final_state
+        
+    except Exception as e:
+        logger.exception(f"💥 Research workflow failed for {company_name}")
+        initial_state.setdefault("errors", []).append(f"Workflow error: {str(e)}")
+        return initial_state
+
+
+# For backward compatibility with old API
+class OrchestratorAgent:
+    """
+    Thin wrapper class for backward compatibility.
+    
+    Internally uses LangGraph workflow but exposes old interface.
+    """
     
     def __init__(self):
-        """Initialize the orchestrator and all sub-agents."""
-        super().__init__(name="OrchestratorAgent", use_cache=False)
-        
-        # Initialize all agents
-        self.company_profile_agent = CompanyProfileAgent()
-        self.financial_research_agent = FinancialResearchAgent()
-        self.news_intelligence_agent = NewsIntelligenceAgent()
-        self.sentiment_analysis_agent = SentimentAnalysisAgent()
-        self.competitive_intelligence_agent = CompetitiveIntelligenceAgent()
-        
-        self.total_steps = 6
-        
-        logger.info("🎭 Orchestrator initialized with all agents")
+        logger.info("🤖 Initialized OrchestratorAgent (LangGraph-based)")
     
-    def _update_progress(self, current_agent: str, progress: int, callback=None):
-        """Update progress (can be extended to report to external systems)."""
-        logger.info(f"📊 Progress: {progress}% - Currently running: {current_agent}")
-        if callback:
-            callback(current_agent, progress)
-    
-    def conduct_research(self, company_name: str, ticker: Optional[str] = None, parallel: bool = True, progress_callback=None) -> Dict[str, Any]:
+    def execute(
+        self,
+        company_name: str,
+        ticker: str = None,
+        parallel: bool = True,  # Ignored, always uses LangGraph
+        progress_callback=None  # Not yet implemented
+    ) -> dict:
         """
-        Legacy method for backward compatibility.
-        Redirects to execute().
-        """
-        return self.execute(company_name=company_name, ticker=ticker, parallel=parallel, progress_callback=progress_callback)
-    
-    def execute(self, company_name: str, ticker: Optional[str] = None, parallel: bool = True, progress_callback=None) -> Dict[str, Any]:
-        """
-        Execute the complete research workflow.
+        Execute research using LangGraph workflow.
         
         Args:
-            company_name: Name of the company to research
-            ticker: Optional stock ticker symbol
-            parallel: Whether to run agents in parallel (True = faster)
-            progress_callback: Optional callback function(agent_name, progress) for progress updates
+            company_name: Name of the company
+            ticker: Optional ticker symbol
+            parallel: Ignored (LangGraph handles parallelism)
+            progress_callback: Not yet implemented
             
         Returns:
-            Dictionary with all research results
+            Dictionary with research results (converted from state)
         """
-        start_time = datetime.now()
-        results = {
+        # Determine mode (default to fast for now)
+        # TODO: Add mode parameter
+        mode = "fast"
+        
+        # Execute workflow  
+        final_state = execute_research(company_name, ticker, mode)
+        
+        # Convert state to old format for compatibility
+        return {
             "company_name": company_name,
             "ticker": ticker,
-            "timestamp": start_time.isoformat(),
-            "status": "running",
-            "errors": []
+            "timestamp": final_state.get("timestamp"),
+            "profile": final_state.get("company_profile"),
+            "financial": final_state.get("financial_data"),
+            "news": final_state.get("news_data"),
+            "sentiment": final_state.get("sentiment_data"),
+            "competitive": final_state.get("competitive_data"),
+            "synthesis": final_state.get("synthesis_result"),
+            "reasoning_chains": final_state.get("reasoning_chains", {}),
+            "trust_scores": final_state.get("trust_scores", {}),
+            "sources": final_state.get("sources", {}),
+            "completed_nodes": final_state.get("completed_nodes", []),
+            "errors": final_state.get("errors", []),
+            "warnings": final_state.get("warnings", []),
+            "ambiguities": final_state.get("ambiguities", []),
+            "duration_seconds": final_state.get("duration_seconds"),
+            "status": "completed" if not final_state.get("errors") else "completed_with_errors"
         }
-        
-        try:
-            # Step 1: Company Profile (0-20%) - Must run first to get industry/ticker
-            self._log_step("Running Company Profile Agent")
-            self._update_progress("CompanyProfileAgent", 10, progress_callback)
-            
-            profile_result = self.company_profile_agent.run(
-                company_name=company_name,
-                ticker=ticker
-            )
-            results["profile"] = profile_result
-            
-            # Extract industry for competitive analysis
-            industry = profile_result.get("industry")
-            
-            # Update ticker if found in profile
-            if not ticker and profile_result.get("ticker"):
-                ticker = profile_result["ticker"]
-                results["ticker"] = ticker
-            
-            self._update_progress("CompanyProfileAgent", 20, progress_callback)
-            
-            # Step 2-4: Run Financial, News, and Competitive agents
-            if parallel:
-                # Parallel execution using ThreadPoolExecutor
-                self._log_step("Running Financial, News, and Competitive agents in parallel")
-                self._update_progress("Parallel Agents", 25, progress_callback)
-                
-                from concurrent.futures import ThreadPoolExecutor, as_completed
-                
-                tasks = {
-                    'financial': lambda: self.financial_research_agent.run(
-                        company_name=company_name,
-                        ticker=ticker
-                    ),
-                    'news': lambda: self.news_intelligence_agent.run(
-                        company_name=company_name,
-                        months_back=12
-                    ),
-                    'competitive': lambda: self.competitive_intelligence_agent.run(
-                        company_name=company_name,
-                        industry=industry
-                    )
-                }
-                
-                with ThreadPoolExecutor(max_workers=3) as executor:
-                    future_to_name = {executor.submit(task): name for name, task in tasks.items()}
-                    
-                    for future in as_completed(future_to_name):
-                        agent_name = future_to_name[future]
-                        try:
-                            result = future.result()
-                            results[agent_name] = result
-                            
-                            # Update progress
-                            if agent_name == 'financial':
-                                self._update_progress("FinancialResearchAgent", 40, progress_callback)
-                            elif agent_name == 'news':
-                                self._update_progress("NewsIntelligenceAgent", 55, progress_callback)
-                            elif agent_name == 'competitive':
-                                self._update_progress("CompetitiveIntelligenceAgent", 70, progress_callback)
-                        except Exception as e:
-                            logger.error(f"Agent {agent_name} failed: {e}")
-                            results[agent_name] = {"error": str(e)}
-                
-                self._update_progress("Parallel Agents", 75, progress_callback)
-                
-            else:
-                # Sequential execution
-                self._log_step("Running Financial Research Agent")
-                self._update_progress("FinancialResearchAgent", 25, progress_callback)
-                
-                financial_result = self.financial_research_agent.run(
-                    company_name=company_name,
-                    ticker=ticker
-                )
-                results["financial"] = financial_result
-                self._update_progress("FinancialResearchAgent", 40, progress_callback)
-                
-                self._log_step("Running News Intelligence Agent")
-                self._update_progress("NewsIntelligenceAgent", 45, progress_callback)
-                
-                news_result = self.news_intelligence_agent.run(
-                    company_name=company_name,
-                    months_back=12
-                )
-                results["news"] = news_result
-                self._update_progress("NewsIntelligenceAgent", 60, progress_callback)
-                
-                self._log_step("Running Competitive Intelligence Agent")
-                self._update_progress("CompetitiveIntelligenceAgent", 65, progress_callback)
-                
-                competitive_result = self.competitive_intelligence_agent.run(
-                    company_name=company_name,
-                    industry=industry
-                )
-                results["competitive"] = competitive_result
-                self._update_progress("CompetitiveIntelligenceAgent", 75, progress_callback)
-            
-            # Step 5: Sentiment Analysis (75-90%)
-            self._log_step("Running Sentiment Analysis Agent")
-            self._update_progress("SentimentAnalysisAgent", 80, progress_callback)
-            
-            # Prepare data sources for sentiment analysis
-            sentiment_data_sources = {}
-            
-            # Use news articles if available
-            news_result = results.get("news", {})
-            if news_result.get("articles"):
-                sentiment_data_sources["news"] = news_result["articles"]
-            
-            sentiment_result = self.sentiment_analysis_agent.run(
-                data_sources=sentiment_data_sources
-            )
-            results["sentiment"] = sentiment_result
-            self._update_progress("SentimentAnalysisAgent", 90, progress_callback)
-            
-            # Step 6: Finalize (95-100%)
-            self._log_step("Finalizing research")
-            
-            # Collect all errors from agents
-            all_errors = []
-            for key in ["profile", "financial", "news", "sentiment", "competitive"]:
-                if key in results and "_metadata" in results[key]:
-                    agent_errors = results[key]["_metadata"].get("errors", [])
-                    all_errors.extend(agent_errors)
-            
-            results["errors"] = all_errors
-            results["status"] = "completed"
-            results["completion_time"] = datetime.now().isoformat()
-            results["duration_seconds"] = (datetime.now() - start_time).total_seconds()
-            
-            self._update_progress("Complete", 100, progress_callback)
-            
-            logger.info(f"✅ Research completed for {company_name} in {results['duration_seconds']:.2f} seconds")
-            
-            return results
-            
-        except Exception as e:
-            logger.exception(f"💥 Orchestrator failed")
-            results["status"] = "failed"
-            results["errors"].append(f"Orchestrator error: {str(e)}")
-            results["completion_time"] = datetime.now().isoformat()
-            return results
+    
+    def conduct_research(self, *args, **kwargs):
+        """Alias for execute() for backward compatibility."""
+        return self.execute(*args, **kwargs)
+    
+    def run(self, *args, **kwargs):
+        """Alias for execute() for backward compatibility."""
+        return self.execute(*args, **kwargs)

@@ -84,25 +84,55 @@ class LLMManager:
             raise ValueError("No LLM providers available")
     
     def _call_gemini(self, prompt: str, **kwargs) -> str:
+        """Call Gemini with retry logic for transient failures."""
         model_name = 'gemini-2.0-flash'
-        try:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
-            return response.text
-        except Exception:
-            model = genai.GenerativeModel('gemini-1.5-pro')
-            response = model.generate_content(prompt)
-            return response.text
+        max_retries = 2
+        delay = 1.0
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt)
+                return response.text
+            except Exception as e:
+                if attempt < max_retries:
+                    # Try fallback model on first retry
+                    if attempt == 1:
+                        try:
+                            model = genai.GenerativeModel('gemini-1.5-flash')
+                            response = model.generate_content(prompt)
+                            return response.text
+                        except:
+                            pass
+                    logger.warning(f"Gemini attempt {attempt}/{max_retries} failed: {e}")
+                    time.sleep(delay * attempt)
+                else:
+                    logger.error(f"Gemini failed after {max_retries} attempts: {e}")
+                    raise
+
     
     def _call_groq(self, prompt: str, **kwargs) -> str:
+        """Call Groq with retry logic for transient failures."""
         client = self.providers[LLMProvider.GROQ]
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile",
-            temperature=kwargs.get("temperature", 0.7),
-            max_tokens=kwargs.get("max_tokens", 2048),
-        )
-        return chat_completion.choices[0].message.content
+        max_retries = 2
+        delay = 1.0
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                chat_completion = client.chat.completions.create(
+                    messages=[{"role": "user", "content": prompt}],
+                    model="llama-3.3-70b-versatile",
+                    temperature=kwargs.get("temperature", 0.7),
+                    max_tokens=kwargs.get("max_tokens", 2048),
+                )
+                return chat_completion.choices[0].message.content
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(f"Groq attempt {attempt}/{max_retries} failed: {e}")
+                    time.sleep(delay * attempt)
+                else:
+                    raise
+
     
     def _call_huggingface(self, prompt: str, **kwargs) -> str:
         client = self.providers[LLMProvider.HUGGINGFACE]
@@ -125,13 +155,26 @@ class LLMManager:
         return response.choices[0].message.content
     
     def _call_cohere(self, prompt: str, **kwargs) -> str:
+        """Call Cohere with retry logic for transient failures."""
         client = self.providers[LLMProvider.COHERE]
-        response = client.chat(
-            message=prompt,
-            model="command-r-08-2024",  # Current supported model
-            temperature=kwargs.get("temperature", 0.7),
-        )
-        return response.text
+        max_retries = 2
+        delay = 1.0
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = client.chat(
+                    message=prompt,
+                    model="command-r-08-2024",
+                    temperature=kwargs.get("temperature", 0.7),
+                )
+                return response.text
+            except Exception as e:
+                if attempt < max_retries:
+                    logger.warning(f"Cohere attempt {attempt}/{max_retries} failed: {e}")
+                    time.sleep(delay * attempt)
+                else:
+                    raise
+
     
     def generate(
         self, 
@@ -181,8 +224,14 @@ class LLMManager:
             except Exception as e:
                 last_error = e
                 self.usage_stats[provider]["failures"] += 1
+                logger.warning(f"Provider {provider.value} failed: {str(e)[:100]}")
+                
                 if not retry_on_failure or provider == provider_order[-1]:
+                    logger.error(f"All LLM providers exhausted. Last error: {e}")
                     break
+                
+                # Wait before trying next provider
+                logger.info(f"Trying next provider in fallback chain...")
                 time.sleep(0.5)
                 continue
         

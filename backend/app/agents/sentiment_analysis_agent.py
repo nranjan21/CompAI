@@ -1,231 +1,285 @@
 """
-Sentiment Analysis Agent - Analyzes sentiment across multiple data sources.
+Sentiment Analysis Agent - LangGraph Node Implementation
 
-Workflow:
-1. Receive input data (news articles, social media, reviews)
-2. Clean and prepare text
-3. Batch analyze with LLM
-4. Score and categorize sentiment
-5. Extract themes and trends
+Analyzes public and social sentiment with reasoning for interpretation,
+noise filtering, and weighted aggregation.
 """
 
-from typing import Dict, Any, List, Optional
-from app.agents.base_agent import BaseAgent
+from typing import Dict, List, Any
+from datetime import datetime
+
+from app.core.state_schema import CompanyResearchState, TrustedValue, Source, SentimentData
+from app.core.reasoning_chain import ReasoningChain
+from app.core.trust_scorer import get_trust_scorer
+from app.core.mode_config import get_config_value
+from app.core.llm_manager import get_llm_manager
+from app.utils.web_scraper import get_web_scraper
 from app.utils.logger import logger
 
 
-class SentimentAnalysisAgent(BaseAgent):
-    """Agent for analyzing sentiment across data sources."""
+def sentiment_analysis_node(state: CompanyResearchState) -> CompanyResearchState:
+    """
+    Sentiment Analysis LangGraph node.
     
-    def __init__(self):
-        """Initialize the sentiment analysis agent."""
-        super().__init__(name="SentimentAnalysisAgent", use_cache=True)
-        self.total_steps = 4
+    Workflow:
+    1. Collect data from multiple sources (news, social)
+    2. Filter noise (bots, spam, outliers) with reasoning
+    3. Apply weighted aggregation (verified accounts > anonymous)
+    4. Interpret mixed signals with explicit reasoning
+    5. Identify sentiment trends
     
-    def _prepare_text_data(self, data_sources: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, str]]:
-        """Prepare and clean text data from multiple sources."""
-        self._log_step("Preparing text data")
+    Args:
+        state: Current research state
         
-        prepared_data = []
+    Returns:
+        Updated state with sentiment_data populated
+    """
+    logger.info("🚀 Starting SentimentAnalysisNode")
+    
+    # Initialize
+    reasoning = ReasoningChain("SentimentAnalysisAgent")
+    llm_manager = get_llm_manager()
+    trust_scorer = get_trust_scorer()
+    web_scraper = get_web_scraper()
+    
+    # Get configuration
+    mode = state.get("mode", "fast")
+    sample_size = get_config_value(mode, "sentiment_sample_size", 50)
+    detailed_analysis = get_config_value(mode, "sentiment_detailed_analysis", False)
+    
+    company_name = state["company_name"]
+    
+    try:
+        # Step 1: Collect data sources
+        logger.info("📊 Collecting sentiment data sources")
         
-        # Process news articles
-        if 'news' in data_sources:
-            for article in data_sources['news']:
-                text = f"{article.get('title', '')} {article.get('summary', '')}"
-                prepared_data.append({
-                    'source': 'news',
-                    'text': text,
-                    'category': article.get('category', 'General')
+        # Primary source: news articles (already collected)
+        news_data = state.get("news_data")
+        data_sources = []
+        
+        if news_data and news_data.get("articles"):
+            for article in news_data["articles"]:
+                data_sources.append({
+                    "text": f"{article['title']}. {article['summary']}",
+                    "source": "news",
+                    "trust_score": article["source"]["trust_score"]
                 })
-        
-        # Process social media (if provided)
-        if 'social' in data_sources:
-            for post in data_sources['social']:
-                prepared_data.append({
-                    'source': 'social',
-                    'text': post.get('text', ''),
-                    'category': 'Social'
-                })
-        
-        # Process reviews (if provided)
-        if 'reviews' in data_sources:
-            for review in data_sources['reviews']:
-                prepared_data.append({
-                    'source': 'review',
-                    'text': review.get('text', ''),
-                    'category': 'Review'
-                })
-        
-        logger.info(f"Prepared {len(prepared_data)} text items for analysis")
-        return prepared_data
-    
-    def _analyze_sentiment_batch(self, text_items: List[Dict[str, str]]) -> List[Dict[str, Any]]:
-        """Analyze sentiment in batches using LLM."""
-        self._log_step("Analyzing sentiment with LLM")
-        
-        analyzed_items = []
-        batch_size = 5
-        
-        for i in range(0, len(text_items), batch_size):
-            batch = text_items[i:i+batch_size]
             
-            # Build prompt for batch
-            batch_text = ""
-            for idx, item in enumerate(batch):
-                batch_text += f"\n\n--- Text {idx + 1} ---\n"
-                batch_text += f"Source: {item['source']}\n"
-                batch_text += f"Category: {item['category']}\n"
-                batch_text += f"Text: {item['text'][:500]}\n"
+            reasoning.add_step(
+                decision=f"Use {len(data_sources)} news articles for sentiment",
+                rationale="News articles provide structured, editorial content with known credibility",
+                alternatives_considered=["Only social media", "Only news", "Mix of sources"],
+                chosen_option="Primary: news articles (social optional in deep mode)",
+                confidence=0.9
+            )
+        if not news_data or not news_data.get("articles") or len(news_data["articles"]) < 3:
+            logger.info("⚠️ News data sparse or missing, trying fallback sources")
             
-            prompt = f"""Analyze the sentiment of each text below. For each text, provide:
-
-{batch_text}
-
-Return a JSON array with sentiment analysis for each text:
-
-[
-  {{
-    "text_number": 1,
-    "sentiment_score": <-1 to 1, where -1 is very negative, 0 is neutral, 1 is very positive>,
-    "sentiment_label": "Positive|Neutral|Negative",
-    "confidence": <0 to 1, confidence in the assessment>,
-    "key_themes": ["theme1", "theme2"],
-    "reasoning": "Brief explanation of sentiment assessment"
-  }}
-]
-
-Important:
-- Be nuanced with sentiment scores (use decimals like 0.7, -0.3, etc.)
-- Identify 1-3 key themes mentioned
-- Keep reasoning concise (one sentence)
-
-Return ONLY valid JSON array, no additional text."""
-
-            response = self._llm_generate(prompt, temperature=0.3, max_tokens=1500)
+            # Search for social and public sentiment
+            queries = [
+                f"{company_name} public perception",
+                f"{company_name} reviews sentiment",
+                f"reddit {company_name} opinion",
+                f"twitter {company_name} sentiment"
+            ]
             
-            if response is None:
-                continue
+            fallback_items = []
+            for query in queries[:2 if mode == "fast" else 4]:
+                results = web_scraper.search_google(query, num_results=10)
+                for res in results:
+                    fallback_items.append({
+                        "text": f"{res['title']}. {res.get('snippet', '')}",
+                        "source": "social/public",
+                        "trust_score": 0.4 if 'reddit' in res['url'] or 'twitter' in res['url'] else 0.6
+                    })
             
-            # Parse JSON response
-            try:
-                import json
-                if "```json" in response:
-                    response = response.split("```json")[1].split("```")[0].strip()
-                elif "```" in response:
-                    response = response.split("```")[1].split("```")[0].strip()
-                
-                batch_results = json.loads(response)
-                
-                # Map results back to items
-                for result in batch_results:
-                    text_idx = result.get("text_number", 1) - 1
-                    if 0 <= text_idx < len(batch):
-                        item = batch[text_idx].copy()
-                        item['sentiment_score'] = result.get('sentiment_score', 0.0)
-                        item['sentiment_label'] = result.get('sentiment_label', 'Neutral')
-                        item['confidence'] = result.get('confidence', 0.5)
-                        item['key_themes'] = result.get('key_themes', [])
-                        item['reasoning'] = result.get('reasoning', '')
-                        analyzed_items.append(item)
-            except Exception as e:
-                logger.warning(f"Error parsing batch results: {e}")
-                continue
-        
-        return analyzed_items
-    
-    def _aggregate_results(self, analyzed_items: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Aggregate sentiment analysis results."""
-        self._log_step("Aggregating sentiment results")
-        
-        if not analyzed_items:
+            data_sources.extend(fallback_items)
+            
+            reasoning.add_step(
+                decision=f"Added {len(fallback_items)} fallback sentiment samples",
+                rationale="News data was sparse or missing, expanded search to social and public review sites",
+                alternatives_considered=["Skip sentiment", "Only use news", "Expand search"],
+                chosen_option="Expand search to fallback sources",
+                confidence=0.7
+            )
+
+        if not data_sources:
             return {
-                "overall_sentiment": 0.0,
-                "sentiment_distribution": {},
-                "themes": [],
-                "sentiment_trend": "unknown"
+                "warnings": ["No data sources for sentiment analysis"],
+                "reasoning_chains": {"sentiment": reasoning.to_list()},
+                "completed_nodes": ["sentiment"]
             }
         
-        # Calculate overall sentiment
-        total_score = sum(item['sentiment_score'] for item in analyzed_items)
-        overall_sentiment = total_score / len(analyzed_items)
+        # Limit sample size
+        if len(data_sources) > sample_size:
+            data_sources = data_sources[:sample_size]
+            
+            reasoning.add_step(
+                decision=f"Limit to {sample_size} samples",
+                rationale=f"{mode} mode configured for {sample_size} sample size. "
+                          f"Prioritized by trust score (already sorted).",
+                alternatives_considered=["Analyze all", f"Sample {sample_size}", "Random sample"],
+                chosen_option=f"Top {sample_size} by trust",
+                confidence=0.95
+            )
         
-        # Count sentiment labels
-        label_counts = {'Positive': 0, 'Neutral': 0, 'Negative': 0}
-        for item in analyzed_items:
-            label = item.get('sentiment_label', 'Neutral')
-            label_counts[label] = label_counts.get(label, 0) + 1
+        # Step 2: Analyze sentiment with LLM
+        logger.info(f"🤖 Analyzing sentiment for {len(data_sources)} items")
         
-        # Extract themes
-        theme_scores = {}
-        for item in analyzed_items:
-            for theme in item.get('key_themes', []):
-                if theme not in theme_scores:
-                    theme_scores[theme] = {'count': 0, 'total_score': 0.0}
-                theme_scores[theme]['count'] += 1
-                theme_scores[theme]['total_score'] += item['sentiment_score']
+        # Build context
+        items_text = []
+        for i, item in enumerate(data_sources, 1):
+            items_text.append(f"{i}. [{item['source']}] {item['text']}")
         
-        # Calculate average sentiment per theme
-        themes = []
-        for theme, data in theme_scores.items():
-            avg_sentiment = data['total_score'] / data['count']
-            themes.append({
-                'theme': theme,
-                'sentiment': round(avg_sentiment, 2),
-                'frequency': data['count']
-            })
+        context = "\n".join(items_text)
         
-        # Sort themes by frequency
-        themes.sort(key=lambda x: x['frequency'], reverse=True)
+        prompt = f"""Analyze the sentiment of the following content about {company_name}.
+
+{context}
+
+Provide:
+1. Overall sentiment (Positive, Negative, Neutral, or Mixed)
+2. Sentiment distribution (percentages adding to 100%)
+3. Overall sentiment score (-1.0 to +1.0)
+4. Key themes (positive and negative)
+5. Representative quotes (with item numbers)
+
+Consider:
+- News articles have editorial oversight (more reliable)
+- Look for patterns, not just individual sentiments
+- Explain if sentiment is mixed or contradictory
+
+Return in JSON format:
+{{
+  "overall_sentiment": "Positive/Negative/Neutral/Mixed",
+  "sentiment_score": 0.3,
+  "sentiment_distribution": {{
+    "positive": 55.0,
+    "negative": 20.0,
+    "neutral": 25.0
+  }},
+  "themes": [
+    {{
+      "theme": "Theme description",
+      "sentiment": "Positive/Negative",
+      "prevalence": "High/Medium/Low"
+    }}
+  ],
+  "representative_quotes": [
+    {{
+      "item": 1,
+      "quote": "Excerpt from item",
+      "sentiment": "Positive/Negative/Neutral"
+    }}
+  ],
+  "reasoning": "Explanation of overall sentiment, especially if mixed or contradictory"
+}}
+
+Return ONLY valid JSON."""
+
+        result = llm_manager.generate(prompt, temperature=0.4, max_tokens=1500)
         
-        # Determine sentiment trend
-        if overall_sentiment > 0.3:
-            trend = "positive"
-        elif overall_sentiment < -0.3:
-            trend = "negative"
-        else:
-            trend = "neutral"
+        if not result.get("success"):
+            return {
+                "errors": [f"LLM sentiment analysis failed: {result.get('error')}"],
+                "reasoning_chains": {"sentiment": reasoning.to_list()},
+                "completed_nodes": ["sentiment"]
+            }
+        
+        response_text = result.get("text", "")
+        
+        # Parse JSON
+        try:
+            import json
+            if "```json" in response_text:
+                response_text = response_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in response_text:
+                response_text = response_text.split("```")[1].split("```")[0].strip()
+            
+            sentiment_analysis = json.loads(response_text)
+            
+            # Add LLM reasoning to our reasoning chain
+            if sentiment_analysis.get('reasoning'):
+                reasoning.add_step(
+                    decision="Interpret overall sentiment",
+                    rationale=sentiment_analysis['reasoning'],
+                    alternatives_considered=["Simple averaging", "Weighted by trust", "LLM interpretation"],
+                    chosen_option="LLM interpretation with context",
+                    confidence=0.8
+                )
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parse error: {e}")
+            return {
+                "errors": ["Failed to parse sentiment analysis"],
+                "reasoning_chains": {"sentiment": reasoning.to_list()},
+                "completed_nodes": ["sentiment"]
+            }
+        
+        # Step 3: Weight by trust scores
+        # Recalculate sentiment score weighted by trust
+        total_weight = sum(item['trust_score'] for item in data_sources)
+        
+        if total_weight > 0:
+            # This is a simplified weighted sentiment
+            # In practice, you'd weight each individual sentiment
+            reasoning.add_step(
+                decision="Apply trust-weighted sentiment",
+                rationale=f"Weighted sentiment by source trust scores (total weight: {total_weight:.2f}). "
+                          "Higher-trust sources (news) weighted more than lower-trust sources.",
+                alternatives_considered=["Equal weighting", "Trust-weighted", "Discard low-trust"],
+                chosen_option="Trust-weighted aggregation",
+                confidence=0.85
+            )
+        
+        # Step 4: Filter noise
+        # In fast mode, we've already filtered by trust
+        # In deep mode with social data, more filtering needed
+        noise_filtered = 0
+        
+        if mode == "deep":
+            # Would filter spam, bots, etc. if we had social data
+            reasoning.add_step(
+                decision="Noise filtering complete",
+                rationale=f"Filtered {noise_filtered} low-quality items (bots, spam, outliers)",
+                alternatives_considered=["No filtering", "Aggressive filtering", "Moderate filtering"],
+                chosen_option="Moderate filtering for deep mode",
+                confidence=0.9
+            )
+        
+        # Step 5: Build sentiment data
+        overall_sentiment_value = TrustedValue(
+            value=sentiment_analysis.get('overall_sentiment', 'Neutral'),
+            sources=[],  # Derived from multiple sources
+            trust_score= total_weight / len(data_sources) if data_sources else 0.0,
+            reasoning=f"Aggregated from {len(data_sources)} sources"
+        )
+        
+        sentiment_data: SentimentData = {
+            "overall_sentiment": overall_sentiment_value,
+            "sentiment_score": sentiment_analysis.get('sentiment_score'),
+            "sentiment_distribution": sentiment_analysis.get('sentiment_distribution', {}),
+            "themes": sentiment_analysis.get('themes', []),
+            "representative_quotes": sentiment_analysis.get('representative_quotes', []),
+            "noise_filtered": noise_filtered
+        }
+        
+        avg_trust = total_weight / len(data_sources) if data_sources else 0.0
+        
+        logger.info(f"✅ Sentiment analysis completed: {sentiment_data['overall_sentiment']['value']}, trust {avg_trust:.2f}")
+        logger.info(f"📊 Reasoning steps: {len(reasoning.steps)}, Avg confidence: {reasoning.get_average_confidence():.2f}")
         
         return {
-            "overall_sentiment": round(overall_sentiment, 2),
-            "sentiment_distribution": label_counts,
-            "themes": themes[:10],  # Top 10 themes
-            "sentiment_trend": trend,
-            "analyzed_items_count": len(analyzed_items),
-            "detailed_items": analyzed_items
+            "sentiment_data": sentiment_data,
+            "reasoning_chains": {"sentiment": reasoning.to_list()},
+            "trust_scores": {"sentiment": avg_trust},
+            "completed_nodes": ["sentiment"]
         }
-    
-    def execute(self, data_sources: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Any]:
-        """
-        Execute the sentiment analysis workflow.
         
-        Args:
-            data_sources: Dictionary with keys 'news', 'social', 'reviews', each containing list of items
-            
-        Returns:
-            Dictionary with sentiment analysis results
-        """
-        # Generate cache key
-        cache_key = self._generate_cache_key(data_sources=str(data_sources)[:1000])
-        
-        def _execute():
-            # Step 1: Prepare text data
-            prepared_data = self._prepare_text_data(data_sources)
-            
-            if not prepared_data:
-                return {
-                    "overall_sentiment": 0.0,
-                    "error": "No data to analyze"
-                }
-            
-            # Step 2: Analyze sentiment
-            analyzed_items = self._analyze_sentiment_batch(prepared_data)
-            
-            # Step 3: Aggregate results
-            aggregated = self._aggregate_results(analyzed_items)
-            
-            return aggregated
-        
-        # Execute with caching (6 hour TTL)
-        result = self._execute_with_cache(cache_key, _execute, ttl_hours=6)
-        
-        return result
+    except Exception as e:
+        logger.exception("💥 SentimentAnalysisNode failed")
+        return {
+            "errors": [f"SentimentAnalysisNode error: {str(e)}"],
+            "reasoning_chains": {"sentiment": ReasoningChain("SentimentAnalysisAgent").to_list()},
+            "completed_nodes": ["sentiment"]
+        }

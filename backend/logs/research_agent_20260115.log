@@ -1,0 +1,930 @@
+2026-01-15 22:11:13 - research_agent - INFO - 🤖 Initialized OrchestratorAgent (LangGraph-based)
+2026-01-15 22:11:13 - research_agent - INFO - 🤖 Initialized InsightSynthesizer (LangGraph-based)
+2026-01-15 22:11:13 - research_agent - INFO - 📊 Initialized ChartGenerator
+2026-01-15 22:11:13 - research_agent - INFO - 📝 Initialized ReportGenerator
+2026-01-15 22:11:13 - research_agent - INFO - 🔎 Phase 1: Research Collection
+2026-01-15 22:11:13 - research_agent - INFO - 🚀 Starting research for Microsoft in fast mode
+2026-01-15 22:11:13 - research_agent - INFO - 🏗️ Creating research workflow in fast mode
+2026-01-15 22:11:13 - research_agent - INFO - 🚀 Starting CompanyProfileNode
+2026-01-15 22:11:13 - research_agent - INFO - ✅ Gemini initialized
+2026-01-15 22:11:13 - research_agent - INFO - ✅ Groq initialized
+2026-01-15 22:11:15 - research_agent - INFO - ✅ Cohere initialized
+2026-01-15 22:11:15 - research_agent - INFO - 🔍 Searching for Microsoft website
+2026-01-15 22:11:17 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:11:17 - research_agent - INFO - ✅ Selected website: https://www.microsoft.com/
+2026-01-15 22:11:17 - research_agent - INFO - 📄 Scraping company website
+2026-01-15 22:11:19 - research_agent - INFO - 📚 Searching for Wikipedia page
+2026-01-15 22:11:21 - research_agent - INFO - SerpAPI returned 2 results
+2026-01-15 22:11:22 - research_agent - INFO - 🤖 Synthesizing company profile with LLM
+2026-01-15 22:11:27 - research_agent - INFO - ✅ Company profile completed with trust score 0.83
+2026-01-15 22:11:27 - research_agent - INFO - 📊 Reasoning steps: 5, Avg confidence: 0.85
+2026-01-15 22:11:27 - research_agent - INFO - 🚀 Starting CompetitiveIntelligenceNode
+2026-01-15 22:11:27 - research_agent - INFO - 🔍 Searching for Microsoft competitors
+2026-01-15 22:11:27 - research_agent - INFO - 🚀 Starting FinancialResearchNode
+2026-01-15 22:11:27 - research_agent - INFO - 🚀 Starting NewsIntelligenceNode
+2026-01-15 22:11:27 - research_agent - INFO - 🔍 Searching for news about Microsoft (last 6 months)
+2026-01-15 22:11:27 - research_agent - INFO - 🔍 Searching for Microsoft annual report
+2026-01-15 22:11:29 - research_agent - INFO - SerpAPI returned 10 results
+2026-01-15 22:11:29 - research_agent - INFO - 🤖 Analyzing competitive landscape with LLM
+2026-01-15 22:11:30 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:11:30 - research_agent - INFO - ✅ Found annual reports page: https://www.annualreports.com/Company/microsoft-corporation
+2026-01-15 22:11:30 - research_agent - INFO - 📥 Downloading latest annual report
+2026-01-15 22:11:30 - research_agent - INFO - ♻️ Reusing existing PDF (0.2 days old): Microsoft_annual_report_20260113.pdf
+2026-01-15 22:11:30 - research_agent - INFO - 📄 Parsing financial statements
+2026-01-15 22:11:31 - research_agent - INFO - ✅ Competitive intelligence completed: 5 competitors, trust 0.50
+2026-01-15 22:11:31 - research_agent - INFO - 📊 Reasoning steps: 3, Avg confidence: 0.82
+2026-01-15 22:11:31 - research_agent - INFO - SerpAPI returned 7 results
+2026-01-15 22:11:31 - research_agent - INFO - Found 7 news results
+2026-01-15 22:11:31 - research_agent - INFO - Selected 7 prioritized articles
+2026-01-15 22:11:31 - research_agent - INFO - 🤖 Analyzing news articles with LLM
+2026-01-15 22:11:31 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:11:31 - research_agent - INFO - Extracted 288033 characters from PDF
+2026-01-15 22:11:32 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:11:32 - research_agent - INFO - 📍 Found best match for 'consolidated statements of income' at pos 263248 (num_density: 11)
+2026-01-15 22:11:32 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:11:32 - research_agent - WARNING - ⚠️ Start marker 'consolidated statements of operations' not found
+2026-01-15 22:11:33 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:11:33 - research_agent - INFO - 📍 Found best match for 'consolidated balance sheets' at pos 175240 (num_density: 30)
+2026-01-15 22:11:33 - research_agent - INFO - 🤖 Analyzing financial data with LLM
+2026-01-15 22:11:33 - research_agent - INFO - Financial data: 5017 estimated tokens
+2026-01-15 22:11:33 - research_agent - INFO - ✅ News research completed: 7 articles, avg trust 0.75
+2026-01-15 22:11:33 - research_agent - INFO - 📊 Reasoning steps: 3, Avg confidence: 0.90
+2026-01-15 22:11:35 - research_agent - INFO - ✅ Financial research completed with trust score 0.95
+2026-01-15 22:11:35 - research_agent - INFO - 📊 Reasoning steps: 4, Avg confidence: 0.88
+2026-01-15 22:11:35 - research_agent - ERROR - 💥 Research workflow failed for Microsoft
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\orchestrator.py", line 162, in execute_research
+    final_state = app.invoke(initial_state)
+  File "D:\Coding\Projects_2026\CompAI\.venv\lib\site-packages\langgraph\pregel\main.py", line 3071, in invoke
+    for chunk in self.stream(
+  File "D:\Coding\Projects_2026\CompAI\.venv\lib\site-packages\langgraph\pregel\main.py", line 2656, in stream
+    loop.after_tick()
+  File "D:\Coding\Projects_2026\CompAI\.venv\lib\site-packages\langgraph\pregel\_loop.py", line 542, in after_tick
+    self.updated_channels = apply_writes(
+  File "D:\Coding\Projects_2026\CompAI\.venv\lib\site-packages\langgraph\pregel\_algo.py", line 296, in apply_writes
+    if channels[chan].update(vals) and next_version is not None:
+  File "D:\Coding\Projects_2026\CompAI\.venv\lib\site-packages\langgraph\channels\last_value.py", line 64, in update
+    raise InvalidUpdateError(msg)
+langgraph.errors.InvalidUpdateError: At key 'company_name': Can receive only one value per step. Use an Annotated key to handle multiple values.
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langgraph/errors/INVALID_CONCURRENT_GRAPH_UPDATE
+2026-01-15 22:11:35 - research_agent - INFO - 
+🧠 Phase 2: Insight Synthesis
+2026-01-15 22:11:35 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:11:35 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:11:35 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:11:35 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:11:39 - research_agent - INFO - ✅ Synthesis completed: 4465 characters
+2026-01-15 22:11:39 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:11:39 - research_agent - INFO - 
+📝 Phase 3: Report Generation
+2026-01-15 22:11:39 - research_agent - INFO - 📝 Generating report for Microsoft
+2026-01-15 22:11:39 - research_agent - ERROR - 
+
+❌ Research failed: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\run_cli.py", line 75, in main
+    report_path = report_generator.generate_report(research_results, synthesis)
+  File "D:\Coding\Projects_2026\CompAI\backend\app\reporting\report_generator.py", line 45, in generate_report
+    report_content = self._build_report(company_name, ticker, research_results, synthesis)
+  File "D:\Coding\Projects_2026\CompAI\backend\app\reporting\report_generator.py", line 123, in _build_report
+    report.append(synthesis.get("executive_summary", "No summary available."))
+AttributeError: 'str' object has no attribute 'get'
+2026-01-15 22:14:18 - research_agent - INFO - 🤖 Initialized OrchestratorAgent (LangGraph-based)
+2026-01-15 22:14:18 - research_agent - INFO - 🤖 Initialized InsightSynthesizer (LangGraph-based)
+2026-01-15 22:14:18 - research_agent - INFO - 📊 Initialized ChartGenerator
+2026-01-15 22:14:18 - research_agent - INFO - 📝 Initialized ReportGenerator
+2026-01-15 22:14:18 - research_agent - INFO - 🔎 Phase 1: Research Collection
+2026-01-15 22:14:18 - research_agent - INFO - 🚀 Starting research for Microsoft in fast mode
+2026-01-15 22:14:18 - research_agent - INFO - 🏗️ Creating research workflow in fast mode
+2026-01-15 22:14:18 - research_agent - INFO - 🚀 Starting CompanyProfileNode
+2026-01-15 22:14:18 - research_agent - INFO - ✅ Gemini initialized
+2026-01-15 22:14:18 - research_agent - INFO - ✅ Groq initialized
+2026-01-15 22:14:18 - research_agent - INFO - ✅ Cohere initialized
+2026-01-15 22:14:18 - research_agent - INFO - 🔍 Searching for Microsoft website
+2026-01-15 22:14:18 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:14:18 - research_agent - INFO - ✅ Selected website: https://www.microsoft.com/
+2026-01-15 22:14:18 - research_agent - INFO - 📄 Scraping company website
+2026-01-15 22:14:20 - research_agent - INFO - 📚 Searching for Wikipedia page
+2026-01-15 22:14:20 - research_agent - INFO - SerpAPI returned 2 results
+2026-01-15 22:14:21 - research_agent - INFO - 🤖 Synthesizing company profile with LLM
+2026-01-15 22:14:24 - research_agent - INFO - ✅ Company profile completed with trust score 0.83
+2026-01-15 22:14:24 - research_agent - INFO - 📊 Reasoning steps: 5, Avg confidence: 0.85
+2026-01-15 22:14:24 - research_agent - INFO - 🚀 Starting CompetitiveIntelligenceNode
+2026-01-15 22:14:24 - research_agent - INFO - 🔍 Searching for Microsoft competitors
+2026-01-15 22:14:24 - research_agent - INFO - 🚀 Starting FinancialResearchNode
+2026-01-15 22:14:24 - research_agent - INFO - 🚀 Starting NewsIntelligenceNode
+2026-01-15 22:14:24 - research_agent - INFO - 🔍 Searching for news about Microsoft (last 6 months)
+2026-01-15 22:14:24 - research_agent - INFO - 🔍 Searching for Microsoft annual report
+2026-01-15 22:14:24 - research_agent - INFO - SerpAPI returned 7 results
+2026-01-15 22:14:24 - research_agent - INFO - Found 7 news results
+2026-01-15 22:14:24 - research_agent - INFO - Selected 7 prioritized articles
+2026-01-15 22:14:24 - research_agent - INFO - 🤖 Analyzing news articles with LLM
+2026-01-15 22:14:24 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:14:25 - research_agent - INFO - ✅ Found annual reports page: https://www.annualreports.com/Company/microsoft-corporation
+2026-01-15 22:14:25 - research_agent - INFO - SerpAPI returned 10 results
+2026-01-15 22:14:25 - research_agent - INFO - 📥 Downloading latest annual report
+2026-01-15 22:14:25 - research_agent - INFO - 🤖 Analyzing competitive landscape with LLM
+2026-01-15 22:14:25 - research_agent - INFO - ♻️ Reusing existing PDF (0.2 days old): Microsoft_annual_report_20260113.pdf
+2026-01-15 22:14:25 - research_agent - INFO - 📄 Parsing financial statements
+2026-01-15 22:14:25 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:14:25 - research_agent - INFO - Extracted 288033 characters from PDF
+2026-01-15 22:14:26 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:14:26 - research_agent - INFO - 📍 Found best match for 'consolidated statements of income' at pos 263248 (num_density: 11)
+2026-01-15 22:14:27 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:14:27 - research_agent - WARNING - ⚠️ Start marker 'consolidated statements of operations' not found
+2026-01-15 22:14:27 - research_agent - ERROR - 💥 NewsIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\news_intelligence_agent.py", line 303, in news_intelligence_node
+    logger.info(f"✅ News research completed: {len(news_articles)} articles, avg trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:14:27 - research_agent - ERROR - 💥 CompetitiveIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\competitive_intelligence_agent.py", line 288, in competitive_intelligence_node
+    logger.info(f"✅ Competitive intelligence completed: {len(competitors)} competitors, trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:14:27 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:14:27 - research_agent - INFO - 📍 Found best match for 'consolidated balance sheets' at pos 175240 (num_density: 30)
+2026-01-15 22:14:27 - research_agent - INFO - 🤖 Analyzing financial data with LLM
+2026-01-15 22:14:27 - research_agent - INFO - Financial data: 5017 estimated tokens
+2026-01-15 22:14:29 - research_agent - INFO - ✅ Financial research completed with trust score 0.95
+2026-01-15 22:14:29 - research_agent - INFO - 📊 Reasoning steps: 4, Avg confidence: 0.88
+2026-01-15 22:14:29 - research_agent - INFO - 🚀 Starting SentimentAnalysisNode
+2026-01-15 22:14:29 - research_agent - INFO - 📊 Collecting sentiment data sources
+2026-01-15 22:14:29 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:14:29 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:14:29 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:14:29 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:14:32 - research_agent - INFO - ✅ Synthesis completed: 4553 characters
+2026-01-15 22:14:32 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:14:32 - research_agent - INFO - ✅ Research completed for Microsoft
+2026-01-15 22:14:32 - research_agent - INFO - ⏱️ Duration: 14.49 seconds
+2026-01-15 22:14:32 - research_agent - INFO - 📊 Completed nodes: ['company_profile', 'competitive', 'financial', 'news', 'sentiment', 'synthesis']
+2026-01-15 22:14:32 - research_agent - INFO - ❌ Errors: 2
+2026-01-15 22:14:32 - research_agent - INFO - ⚠️ Warnings: 1
+2026-01-15 22:14:32 - research_agent - INFO - 
+🧠 Phase 2: Insight Synthesis
+2026-01-15 22:14:32 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:14:32 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:14:32 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:14:32 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:14:36 - research_agent - INFO - ✅ Synthesis completed: 4676 characters
+2026-01-15 22:14:36 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:14:36 - research_agent - INFO - 
+📝 Phase 3: Report Generation
+2026-01-15 22:14:36 - research_agent - INFO - 📝 Generating report for Microsoft
+2026-01-15 22:14:36 - research_agent - INFO - ✅ Report generated: reports\Microsoft_20260115_221436.md
+2026-01-15 22:15:12 - research_agent - INFO - 🤖 Initialized OrchestratorAgent (LangGraph-based)
+2026-01-15 22:15:12 - research_agent - INFO - 🤖 Initialized InsightSynthesizer (LangGraph-based)
+2026-01-15 22:15:12 - research_agent - INFO - 📊 Initialized ChartGenerator
+2026-01-15 22:15:12 - research_agent - INFO - 📝 Initialized ReportGenerator
+2026-01-15 22:15:12 - research_agent - INFO - 🔎 Phase 1: Research Collection
+2026-01-15 22:15:12 - research_agent - INFO - 🚀 Starting research for Microsoft in fast mode
+2026-01-15 22:15:12 - research_agent - INFO - 🏗️ Creating research workflow in fast mode
+2026-01-15 22:15:13 - research_agent - INFO - 🚀 Starting CompanyProfileNode
+2026-01-15 22:15:13 - research_agent - INFO - ✅ Gemini initialized
+2026-01-15 22:15:13 - research_agent - INFO - ✅ Groq initialized
+2026-01-15 22:15:13 - research_agent - INFO - ✅ Cohere initialized
+2026-01-15 22:15:13 - research_agent - INFO - 🔍 Searching for Microsoft website
+2026-01-15 22:15:13 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:15:13 - research_agent - INFO - ✅ Selected website: https://www.microsoft.com/
+2026-01-15 22:15:13 - research_agent - INFO - 📄 Scraping company website
+2026-01-15 22:15:16 - research_agent - INFO - 📚 Searching for Wikipedia page
+2026-01-15 22:15:16 - research_agent - INFO - SerpAPI returned 2 results
+2026-01-15 22:15:17 - research_agent - INFO - 🤖 Synthesizing company profile with LLM
+2026-01-15 22:15:20 - research_agent - INFO - ✅ Company profile completed with trust score 0.83
+2026-01-15 22:15:20 - research_agent - INFO - 📊 Reasoning steps: 5, Avg confidence: 0.85
+2026-01-15 22:15:20 - research_agent - INFO - 🚀 Starting CompetitiveIntelligenceNode
+2026-01-15 22:15:20 - research_agent - INFO - 🔍 Searching for Microsoft competitors
+2026-01-15 22:15:20 - research_agent - INFO - 🚀 Starting FinancialResearchNode
+2026-01-15 22:15:20 - research_agent - INFO - 🚀 Starting NewsIntelligenceNode
+2026-01-15 22:15:20 - research_agent - INFO - 🔍 Searching for news about Microsoft (last 6 months)
+2026-01-15 22:15:20 - research_agent - INFO - 🔍 Searching for Microsoft annual report
+2026-01-15 22:15:20 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:15:20 - research_agent - INFO - ✅ Found annual reports page: https://www.annualreports.com/Company/microsoft-corporation
+2026-01-15 22:15:20 - research_agent - INFO - 📥 Downloading latest annual report
+2026-01-15 22:15:20 - research_agent - INFO - ♻️ Reusing existing PDF (0.2 days old): Microsoft_annual_report_20260113.pdf
+2026-01-15 22:15:20 - research_agent - INFO - SerpAPI returned 7 results
+2026-01-15 22:15:20 - research_agent - INFO - 📄 Parsing financial statements
+2026-01-15 22:15:20 - research_agent - INFO - Found 7 news results
+2026-01-15 22:15:20 - research_agent - INFO - Selected 7 prioritized articles
+2026-01-15 22:15:20 - research_agent - INFO - 🤖 Analyzing news articles with LLM
+2026-01-15 22:15:20 - research_agent - INFO - SerpAPI returned 10 results
+2026-01-15 22:15:20 - research_agent - INFO - 🤖 Analyzing competitive landscape with LLM
+2026-01-15 22:15:20 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:15:20 - research_agent - INFO - Extracted 288033 characters from PDF
+2026-01-15 22:15:21 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:15:21 - research_agent - INFO - 📍 Found best match for 'consolidated statements of income' at pos 263248 (num_density: 11)
+2026-01-15 22:15:22 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:15:22 - research_agent - WARNING - ⚠️ Start marker 'consolidated statements of operations' not found
+2026-01-15 22:15:22 - research_agent - ERROR - 💥 NewsIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\news_intelligence_agent.py", line 303, in news_intelligence_node
+    logger.info(f"✅ News research completed: {len(news_articles)} articles, avg trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:15:22 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:15:22 - research_agent - INFO - 📍 Found best match for 'consolidated balance sheets' at pos 175240 (num_density: 30)
+2026-01-15 22:15:22 - research_agent - INFO - 🤖 Analyzing financial data with LLM
+2026-01-15 22:15:22 - research_agent - INFO - Financial data: 5017 estimated tokens
+2026-01-15 22:15:22 - research_agent - ERROR - 💥 CompetitiveIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\competitive_intelligence_agent.py", line 288, in competitive_intelligence_node
+    logger.info(f"✅ Competitive intelligence completed: {len(competitors)} competitors, trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:15:24 - research_agent - INFO - ✅ Financial research completed with trust score 0.95
+2026-01-15 22:15:24 - research_agent - INFO - 📊 Reasoning steps: 4, Avg confidence: 0.88
+2026-01-15 22:15:24 - research_agent - INFO - 🚀 Starting SentimentAnalysisNode
+2026-01-15 22:15:24 - research_agent - INFO - 📊 Collecting sentiment data sources
+2026-01-15 22:15:24 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:15:24 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:15:24 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:15:24 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:15:28 - research_agent - INFO - ✅ Synthesis completed: 5034 characters
+2026-01-15 22:15:28 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:15:28 - research_agent - INFO - ✅ Research completed for Microsoft
+2026-01-15 22:15:28 - research_agent - INFO - ⏱️ Duration: 15.08 seconds
+2026-01-15 22:15:28 - research_agent - INFO - 📊 Completed nodes: ['company_profile', 'competitive', 'financial', 'news', 'sentiment', 'synthesis']
+2026-01-15 22:15:28 - research_agent - INFO - ❌ Errors: 2
+2026-01-15 22:15:28 - research_agent - INFO - ⚠️ Warnings: 1
+2026-01-15 22:15:28 - research_agent - INFO - 
+🧠 Phase 2: Insight Synthesis
+2026-01-15 22:15:28 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:15:28 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:15:28 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:15:28 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:15:31 - research_agent - INFO - ✅ Synthesis completed: 4485 characters
+2026-01-15 22:15:31 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:15:31 - research_agent - INFO - 
+📝 Phase 3: Report Generation
+2026-01-15 22:15:31 - research_agent - INFO - 📝 Generating report for Microsoft
+2026-01-15 22:15:31 - research_agent - INFO - ✅ Report generated: reports\Microsoft_20260115_221531.md
+2026-01-15 22:16:18 - research_agent - INFO - 🤖 Initialized OrchestratorAgent (LangGraph-based)
+2026-01-15 22:16:18 - research_agent - INFO - 🤖 Initialized InsightSynthesizer (LangGraph-based)
+2026-01-15 22:16:18 - research_agent - INFO - 📊 Initialized ChartGenerator
+2026-01-15 22:16:18 - research_agent - INFO - 📝 Initialized ReportGenerator
+2026-01-15 22:16:18 - research_agent - INFO - 🔎 Phase 1: Research Collection
+2026-01-15 22:16:18 - research_agent - INFO - 🚀 Starting research for Microsoft in fast mode
+2026-01-15 22:16:18 - research_agent - INFO - 🏗️ Creating research workflow in fast mode
+2026-01-15 22:16:18 - research_agent - INFO - 🚀 Starting CompanyProfileNode
+2026-01-15 22:16:18 - research_agent - INFO - ✅ Gemini initialized
+2026-01-15 22:16:18 - research_agent - INFO - ✅ Groq initialized
+2026-01-15 22:16:19 - research_agent - INFO - ✅ Cohere initialized
+2026-01-15 22:16:19 - research_agent - INFO - 🔍 Searching for Microsoft website
+2026-01-15 22:16:19 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:16:19 - research_agent - INFO - ✅ Selected website: https://www.microsoft.com/
+2026-01-15 22:16:19 - research_agent - INFO - 📄 Scraping company website
+2026-01-15 22:16:21 - research_agent - INFO - 📚 Searching for Wikipedia page
+2026-01-15 22:16:21 - research_agent - INFO - SerpAPI returned 2 results
+2026-01-15 22:16:23 - research_agent - INFO - 🤖 Synthesizing company profile with LLM
+2026-01-15 22:16:26 - research_agent - INFO - ✅ Company profile completed with trust score 0.83
+2026-01-15 22:16:26 - research_agent - INFO - 📊 Reasoning steps: 5, Avg confidence: 0.85
+2026-01-15 22:16:26 - research_agent - INFO - 🚀 Starting CompetitiveIntelligenceNode
+2026-01-15 22:16:26 - research_agent - INFO - 🔍 Searching for Microsoft competitors
+2026-01-15 22:16:26 - research_agent - INFO - 🚀 Starting FinancialResearchNode
+2026-01-15 22:16:26 - research_agent - INFO - 🚀 Starting NewsIntelligenceNode
+2026-01-15 22:16:26 - research_agent - INFO - 🔍 Searching for news about Microsoft (last 6 months)
+2026-01-15 22:16:26 - research_agent - INFO - 🔍 Searching for Microsoft annual report
+2026-01-15 22:16:26 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:16:26 - research_agent - INFO - ✅ Found annual reports page: https://www.annualreports.com/Company/microsoft-corporation
+2026-01-15 22:16:26 - research_agent - INFO - 📥 Downloading latest annual report
+2026-01-15 22:16:26 - research_agent - INFO - SerpAPI returned 10 results
+2026-01-15 22:16:26 - research_agent - INFO - 🤖 Analyzing competitive landscape with LLM
+2026-01-15 22:16:26 - research_agent - INFO - SerpAPI returned 7 results
+2026-01-15 22:16:26 - research_agent - INFO - ♻️ Reusing existing PDF (0.2 days old): Microsoft_annual_report_20260113.pdf
+2026-01-15 22:16:26 - research_agent - INFO - Found 7 news results
+2026-01-15 22:16:26 - research_agent - INFO - 📄 Parsing financial statements
+2026-01-15 22:16:26 - research_agent - INFO - Selected 7 prioritized articles
+2026-01-15 22:16:26 - research_agent - INFO - 🤖 Analyzing news articles with LLM
+2026-01-15 22:16:27 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:16:27 - research_agent - INFO - Extracted 288033 characters from PDF
+2026-01-15 22:16:28 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:16:28 - research_agent - INFO - 📍 Found best match for 'consolidated statements of income' at pos 263248 (num_density: 11)
+2026-01-15 22:16:28 - research_agent - ERROR - 💥 CompetitiveIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\competitive_intelligence_agent.py", line 288, in competitive_intelligence_node
+    logger.info(f"✅ Competitive intelligence completed: {len(competitors)} competitors, trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:16:28 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:16:28 - research_agent - ERROR - 💥 NewsIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\news_intelligence_agent.py", line 303, in news_intelligence_node
+    logger.info(f"✅ News research completed: {len(news_articles)} articles, avg trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:16:28 - research_agent - WARNING - ⚠️ Start marker 'consolidated statements of operations' not found
+2026-01-15 22:16:29 - research_agent - INFO - ✅ Extracted 288033 characters from annual_reports\Microsoft_annual_report_20260113.pdf
+2026-01-15 22:16:29 - research_agent - INFO - 📍 Found best match for 'consolidated balance sheets' at pos 175240 (num_density: 30)
+2026-01-15 22:16:29 - research_agent - INFO - 🤖 Analyzing financial data with LLM
+2026-01-15 22:16:29 - research_agent - INFO - Financial data: 5017 estimated tokens
+2026-01-15 22:16:31 - research_agent - INFO - ✅ Financial research completed with trust score 0.95
+2026-01-15 22:16:31 - research_agent - INFO - 📊 Reasoning steps: 4, Avg confidence: 0.88
+2026-01-15 22:16:31 - research_agent - INFO - 🚀 Starting SentimentAnalysisNode
+2026-01-15 22:16:31 - research_agent - INFO - 📊 Collecting sentiment data sources
+2026-01-15 22:16:31 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:16:31 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:16:31 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:16:31 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:16:35 - research_agent - INFO - ✅ Synthesis completed: 5703 characters
+2026-01-15 22:16:35 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:16:35 - research_agent - INFO - ✅ Research completed for Microsoft
+2026-01-15 22:16:35 - research_agent - INFO - ⏱️ Duration: 16.99 seconds
+2026-01-15 22:16:35 - research_agent - INFO - 📊 Completed nodes: ['company_profile', 'competitive', 'financial', 'news', 'sentiment', 'synthesis']
+2026-01-15 22:16:35 - research_agent - INFO - ❌ Errors: 2
+2026-01-15 22:16:35 - research_agent - INFO - ⚠️ Warnings: 1
+2026-01-15 22:16:35 - research_agent - INFO - 
+🧠 Phase 2: Insight Synthesis
+2026-01-15 22:16:35 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:16:35 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:16:35 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:16:35 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:16:39 - research_agent - INFO - ✅ Synthesis completed: 4224 characters
+2026-01-15 22:16:39 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:16:39 - research_agent - INFO - 
+📝 Phase 3: Report Generation
+2026-01-15 22:16:39 - research_agent - INFO - 📝 Generating report for Microsoft
+2026-01-15 22:16:39 - research_agent - INFO - ✅ Report generated: reports\Microsoft_20260115_221639.md
+2026-01-15 22:29:46 - research_agent - INFO - 🤖 Initialized OrchestratorAgent (LangGraph-based)
+2026-01-15 22:29:46 - research_agent - INFO - 🤖 Initialized InsightSynthesizer (LangGraph-based)
+2026-01-15 22:29:46 - research_agent - INFO - 📊 Initialized ChartGenerator
+2026-01-15 22:29:46 - research_agent - INFO - 📝 Initialized ReportGenerator
+2026-01-15 22:29:46 - research_agent - INFO - 🔎 Phase 1: Research Collection
+2026-01-15 22:29:46 - research_agent - INFO - 🚀 Starting research for Tesla in fast mode
+2026-01-15 22:29:46 - research_agent - INFO - 🏗️ Creating research workflow in fast mode
+2026-01-15 22:29:46 - research_agent - INFO - 🚀 Starting CompanyProfileNode
+2026-01-15 22:29:46 - research_agent - INFO - ✅ Gemini initialized
+2026-01-15 22:29:46 - research_agent - INFO - ✅ Groq initialized
+2026-01-15 22:29:47 - research_agent - INFO - ✅ Cohere initialized
+2026-01-15 22:29:47 - research_agent - INFO - 🔍 Searching for Tesla website
+2026-01-15 22:29:50 - research_agent - INFO - SerpAPI returned 5 results
+2026-01-15 22:29:50 - research_agent - INFO - ✅ Selected website: https://www.tesla.com/
+2026-01-15 22:29:50 - research_agent - INFO - 📄 Scraping company website
+2026-01-15 22:29:51 - research_agent - WARNING - ⚠️  fetch_html failed (attempt 1/3): 403 Client Error: Forbidden for url: https://www.tesla.com/. Retrying in 1.0s...
+2026-01-15 22:29:52 - research_agent - WARNING - ⚠️  fetch_html failed (attempt 2/3): 403 Client Error: Forbidden for url: https://www.tesla.com/. Retrying in 2.0s...
+2026-01-15 22:29:54 - research_agent - ERROR - ❌ fetch_html failed after 3 attempts: 403 Client Error: Forbidden for url: https://www.tesla.com/
+2026-01-15 22:29:54 - research_agent - ERROR - 💥 CompanyProfileNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\company_profile_agent.py", line 91, in company_profile_node
+    soup = web_scraper.fetch_and_parse(website)
+  File "D:\Coding\Projects_2026\CompAI\backend\app\utils\web_scraper.py", line 89, in fetch_and_parse
+    html = self.fetch_html(url, timeout)
+  File "D:\Coding\Projects_2026\CompAI\backend\app\utils\retry_utils.py", line 51, in wrapper
+    return func(*args, **kwargs)
+  File "D:\Coding\Projects_2026\CompAI\backend\app\utils\web_scraper.py", line 59, in fetch_html
+    response.raise_for_status()
+  File "D:\Coding\Projects_2026\CompAI\.venv\lib\site-packages\requests\models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: https://www.tesla.com/
+2026-01-15 22:29:54 - research_agent - INFO - 🚀 Starting CompetitiveIntelligenceNode
+2026-01-15 22:29:54 - research_agent - INFO - 🔍 Searching for Tesla competitors
+2026-01-15 22:29:54 - research_agent - INFO - 🚀 Starting FinancialResearchNode
+2026-01-15 22:29:54 - research_agent - INFO - 🚀 Starting NewsIntelligenceNode
+2026-01-15 22:29:54 - research_agent - INFO - 🔍 Searching for news about Tesla (last 6 months)
+2026-01-15 22:29:54 - research_agent - INFO - 🔍 Searching for Tesla annual report
+2026-01-15 22:29:56 - research_agent - INFO - SerpAPI returned 4 results
+2026-01-15 22:29:56 - research_agent - INFO - ✅ Found annual reports page: https://www.annualreports.com/Company/tesla-inc
+2026-01-15 22:29:56 - research_agent - INFO - 📥 Downloading latest annual report
+2026-01-15 22:29:57 - research_agent - INFO - 📥 Downloading: View PDF from https://www.annualreports.com/Click/34026
+2026-01-15 22:29:57 - research_agent - INFO - SerpAPI returned 7 results
+2026-01-15 22:29:57 - research_agent - INFO - Found 7 news results
+2026-01-15 22:29:57 - research_agent - INFO - Selected 6 prioritized articles
+2026-01-15 22:29:57 - research_agent - INFO - 🤖 Analyzing news articles with LLM
+2026-01-15 22:29:58 - research_agent - INFO - SerpAPI returned 9 results
+2026-01-15 22:29:58 - research_agent - INFO - 🤖 Analyzing competitive landscape with LLM
+2026-01-15 22:29:58 - research_agent - WARNING - Gemini attempt 1/2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 1.362495361s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 1
+}
+]
+2026-01-15 22:29:59 - research_agent - WARNING - Gemini attempt 1/2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 1.330363373s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 1
+}
+]
+2026-01-15 22:29:59 - research_agent - INFO - ✅ Downloaded https://www.annualreports.com/Click/34026 to annual_reports\Tesla_annual_report_20260115.pdf
+2026-01-15 22:29:59 - research_agent - INFO - ✅ Downloaded to annual_reports\Tesla_annual_report_20260115.pdf
+2026-01-15 22:29:59 - research_agent - INFO - 📄 Parsing financial statements
+2026-01-15 22:30:00 - research_agent - ERROR - Gemini failed after 2 attempts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 59.629943338s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 59
+}
+]
+2026-01-15 22:30:00 - research_agent - WARNING - Provider gemini failed: 429 You exceeded your current quota, please check your plan and billing details. For more informatio
+2026-01-15 22:30:00 - research_agent - INFO - Trying next provider in fallback chain...
+2026-01-15 22:30:00 - research_agent - ERROR - Gemini failed after 2 attempts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 59.262070866s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 59
+}
+]
+2026-01-15 22:30:00 - research_agent - WARNING - Provider gemini failed: 429 You exceeded your current quota, please check your plan and billing details. For more informatio
+2026-01-15 22:30:00 - research_agent - INFO - Trying next provider in fallback chain...
+2026-01-15 22:30:01 - research_agent - INFO - ✅ Extracted 475331 characters from annual_reports\Tesla_annual_report_20260115.pdf
+2026-01-15 22:30:01 - research_agent - INFO - Extracted 475331 characters from PDF
+2026-01-15 22:30:01 - research_agent - INFO - ✅ Extracted 475331 characters from annual_reports\Tesla_annual_report_20260115.pdf
+2026-01-15 22:30:01 - research_agent - WARNING - ⚠️ Start marker 'consolidated statements of income' not found
+2026-01-15 22:30:02 - research_agent - INFO - ✅ Extracted 475331 characters from annual_reports\Tesla_annual_report_20260115.pdf
+2026-01-15 22:30:02 - research_agent - INFO - 📍 Found best match for 'consolidated statements of operations' at pos 210070 (num_density: 108)
+2026-01-15 22:30:03 - research_agent - INFO - ✅ Extracted 475331 characters from annual_reports\Tesla_annual_report_20260115.pdf
+2026-01-15 22:30:03 - research_agent - INFO - 📍 Found best match for 'consolidated balance sheets' at pos 208120 (num_density: 83)
+2026-01-15 22:30:03 - research_agent - INFO - 🤖 Analyzing financial data with LLM
+2026-01-15 22:30:03 - research_agent - INFO - Financial data: 5018 estimated tokens
+2026-01-15 22:30:03 - research_agent - WARNING - Gemini attempt 1/2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 56.636113648s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 56
+}
+]
+2026-01-15 22:30:04 - research_agent - ERROR - 💥 CompetitiveIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\competitive_intelligence_agent.py", line 288, in competitive_intelligence_node
+    logger.info(f"✅ Competitive intelligence completed: {len(competitors)} competitors, trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:30:04 - research_agent - ERROR - 💥 NewsIntelligenceNode failed
+Traceback (most recent call last):
+  File "D:\Coding\Projects_2026\CompAI\backend\app\agents\news_intelligence_agent.py", line 303, in news_intelligence_node
+    logger.info(f"✅ News research completed: {len(news_articles)} articles, avg trust {avg_trust:.2f}")
+NameError: name 'avg_trust' is not defined
+2026-01-15 22:30:05 - research_agent - ERROR - Gemini failed after 2 attempts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 55.084666949s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 55
+}
+]
+2026-01-15 22:30:05 - research_agent - WARNING - Provider gemini failed: 429 You exceeded your current quota, please check your plan and billing details. For more informatio
+2026-01-15 22:30:05 - research_agent - INFO - Trying next provider in fallback chain...
+2026-01-15 22:30:06 - research_agent - INFO - ✅ Financial research completed with trust score 0.95
+2026-01-15 22:30:06 - research_agent - INFO - 📊 Reasoning steps: 4, Avg confidence: 0.86
+2026-01-15 22:30:06 - research_agent - INFO - 🚀 Starting SentimentAnalysisNode
+2026-01-15 22:30:06 - research_agent - INFO - 📊 Collecting sentiment data sources
+2026-01-15 22:30:06 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:30:06 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:30:06 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:30:06 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:30:07 - research_agent - WARNING - Gemini attempt 1/2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 53.401322625s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 53
+}
+]
+2026-01-15 22:30:08 - research_agent - ERROR - Gemini failed after 2 attempts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 51.874119045s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 51
+}
+]
+2026-01-15 22:30:08 - research_agent - WARNING - Provider gemini failed: 429 You exceeded your current quota, please check your plan and billing details. For more informatio
+2026-01-15 22:30:08 - research_agent - INFO - Trying next provider in fallback chain...
+2026-01-15 22:30:11 - research_agent - INFO - ✅ Synthesis completed: 5500 characters
+2026-01-15 22:30:11 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:30:11 - research_agent - INFO - ✅ Research completed for Tesla
+2026-01-15 22:30:11 - research_agent - INFO - ⏱️ Duration: 25.65 seconds
+2026-01-15 22:30:11 - research_agent - INFO - 📊 Completed nodes: ['company_profile', 'competitive', 'financial', 'news', 'sentiment', 'synthesis']
+2026-01-15 22:30:11 - research_agent - INFO - ❌ Errors: 3
+2026-01-15 22:30:11 - research_agent - INFO - ⚠️ Warnings: 1
+2026-01-15 22:30:11 - research_agent - INFO - 
+🧠 Phase 2: Insight Synthesis
+2026-01-15 22:30:11 - research_agent - INFO - 🚀 Starting SynthesisNode
+2026-01-15 22:30:11 - research_agent - INFO - 📦 Gathering research data
+2026-01-15 22:30:11 - research_agent - INFO - 🤖 Building synthesis context
+2026-01-15 22:30:11 - research_agent - INFO - ✍️ Generating report (fast mode, multi_pass=False)
+2026-01-15 22:30:12 - research_agent - WARNING - Gemini attempt 1/2 failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 48.251485532s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 48
+}
+]
+2026-01-15 22:30:13 - research_agent - ERROR - Gemini failed after 2 attempts: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 46.694261342s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 46
+}
+]
+2026-01-15 22:30:13 - research_agent - WARNING - Provider gemini failed: 429 You exceeded your current quota, please check your plan and billing details. For more informatio
+2026-01-15 22:30:13 - research_agent - INFO - Trying next provider in fallback chain...
+2026-01-15 22:30:16 - research_agent - INFO - ✅ Synthesis completed: 4977 characters
+2026-01-15 22:30:16 - research_agent - INFO - 📊 Reasoning steps: 1, Avg confidence: 0.85
+2026-01-15 22:30:16 - research_agent - INFO - 
+📝 Phase 3: Report Generation
+2026-01-15 22:30:16 - research_agent - INFO - 📝 Generating report for Tesla
+2026-01-15 22:30:16 - research_agent - INFO - ✅ Report generated: reports\Tesla_20260115_223016.md

@@ -9,6 +9,7 @@ from typing import Optional, List, Dict, Any
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from app.utils.logger import logger
+from app.utils.retry_utils import retry_on_failure
 
 
 class WebScraper:
@@ -39,9 +40,10 @@ class WebScraper:
         
         self.last_request_time = time.time()
     
+    @retry_on_failure(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(requests.exceptions.RequestException,))
     def fetch_html(self, url: str, timeout: int = 10) -> Optional[str]:
         """
-        Fetch HTML content from a URL.
+        Fetch HTML content from a URL with retry logic.
         
         Args:
             url: URL to fetch
@@ -52,20 +54,10 @@ class WebScraper:
         """
         self._rate_limit()
         
-        try:
-            logger.debug(f"🌐 Fetching {url}")
-            response = self.session.get(url, timeout=timeout)
-            response.raise_for_status()
-            return response.text
-        except requests.exceptions.Timeout:
-            logger.warning(f"⏱️ Timeout fetching {url}")
-            return None
-        except requests.exceptions.HTTPError as e:
-            logger.warning(f"❌ HTTP error {e.response.status_code} fetching {url}")
-            return None
-        except requests.exceptions.RequestException as e:
-            logger.warning(f"⚠️ Error fetching {url}: {e}")
-            return None
+        logger.debug(f"🌐 Fetching {url}")
+        response = self.session.get(url, timeout=timeout)
+        response.raise_for_status()
+        return response.text
     
     def parse_html(self, html: str) -> Optional[BeautifulSoup]:
         """
@@ -215,7 +207,8 @@ class WebScraper:
                         for result in organic_results[:num_results]:
                             results.append({
                                 'title': result.get('title', ''),
-                                'url': result.get('link', '')
+                                'url': result.get('link', ''),
+                                'snippet': result.get('snippet', '')
                             })
                         
                         if results:
@@ -254,9 +247,141 @@ class WebScraper:
         
         return results[:num_results]
     
+    def search_google_news(self, query: str, months_back: int = 6, num_results: int = 20) -> List[Dict[str, Any]]:
+        """
+        Search Google News specifically for recent articles with dates.
+        
+        Args:
+            query: Search query (company name)
+            months_back: How many months back to search
+            num_results: Number of results to return
+            
+        Returns:
+            List of news articles with title, URL, date, source, snippet
+        """
+        from app.core.config import config
+        
+        if not config.data_sources.serpapi_key:
+            logger.warning("No SerpAPI key configured, falling back to search_google")
+            return self.search_google(f"{query} news", num_results)
+        
+        try:
+            import requests
+            from datetime import datetime, timedelta
+            
+            # Calculate date range
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=months_back * 30)
+            
+            params = {
+                "engine": "google_news",  # Use News engine
+                "q": query,
+                "gl": "us",  # Geographic location
+                "hl": "en",  # Language
+                "num": num_results,
+                "api_key": config.data_sources.serpapi_key
+            }
+            
+            # Add time filter (qdr parameter: m6 = 6 months, m12 = 12 months)
+            if months_back <= 1:
+                params["tbs"] = "qdr:m"  # Past month
+            elif months_back <= 6:
+                params["tbs"] = "qdr:m6"  # Past 6 months
+            elif months_back <= 12:
+                params["tbs"] = "qdr:y"  # Past year
+            
+            logger.info(f"Searching Google News for '{query}' (past {months_back} months)")
+            response = requests.get("https://serpapi.com/search", params=params, timeout=15)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "error" in data:
+                    logger.error(f"SerpAPI News error: {data['error']}")
+                    return []
+                
+                news_results = data.get("news_results", [])
+                
+                if not news_results:
+                    logger.warning(f"No news results found for '{query}'")
+                    return []
+                
+                articles = []
+                for article in news_results[:num_results]:
+                    articles.append({
+                        'title': article.get('title', ''),
+                        'url': article.get('link', ''),
+                        'source': article.get('source', ''),
+                        'date': article.get('date', ''),  # e.g., "2 days ago"
+                        'snippet': article.get('snippet', ''),
+                        'thumbnail': article.get('thumbnail', '')
+                    })
+                
+                logger.info(f"Found {len(articles)} news articles")
+                return articles
+            else:
+                logger.error(f"SerpAPI News returned status {response.status_code}")
+                return []
+                
+        except Exception as e:
+            logger.exception(f"Failed to search Google News: {e}")
+            return []
+    
+    def extract_wikipedia_history(self, wiki_url: str) -> Optional[str]:
+        """
+        Extract the History section from a Wikipedia page.
+        
+        Args:
+            wiki_url: URL of the Wikipedia page
+            
+        Returns:
+            Extracted history text or None if not found
+        """
+        try:
+            soup = self.fetch_and_parse(wiki_url)
+            if not soup:
+                return None
+            
+            # Find History heading
+            # Wikipedia used h2 for major sections. We look for id "History"
+            history_heading = None
+            for h2 in soup.find_all('h2'):
+                span = h2.find('span', id='History')
+                if span:
+                    history_heading = h2
+                    break
+            
+            if not history_heading:
+                # Try case insensitive or partial match
+                for h2 in soup.find_all('h2'):
+                    text = h2.get_text().lower()
+                    if 'history' in text or 'background' in text:
+                        history_heading = h2
+                        break
+            
+            if not history_heading:
+                return None
+            
+            content = []
+            # Gather all subsequent siblings until the next h2
+            curr = history_heading.next_sibling
+            while curr and curr.name != 'h2':
+                if curr.name in ['p', 'ul', 'ol']:
+                    text = curr.get_text(strip=True)
+                    if text:
+                        content.append(text)
+                curr = curr.next_sibling
+            
+            return "\n\n".join(content) if content else None
+            
+        except Exception as e:
+            logger.warning(f"Error extracting Wikipedia history: {e}")
+            return None
+
+    @retry_on_failure(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(requests.exceptions.RequestException, IOError))
     def download_file(self, url: str, save_path: str, timeout: int = 30) -> bool:
         """
-        Download a file from URL.
+        Download a file from URL with retry logic.
         
         Args:
             url: URL to download from
@@ -268,20 +393,16 @@ class WebScraper:
         """
         self._rate_limit()
         
-        try:
-            logger.debug(f"📥 Downloading {url}")
-            response = self.session.get(url, timeout=timeout, stream=True)
-            response.raise_for_status()
-            
-            with open(save_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            
-            logger.info(f"✅ Downloaded {url} to {save_path}")
-            return True
-        except Exception as e:
-            logger.warning(f"⚠️ Error downloading {url}: {e}")
-            return False
+        logger.debug(f"📥 Downloading {url}")
+        response = self.session.get(url, timeout=timeout, stream=True)
+        response.raise_for_status()
+        
+        with open(save_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        logger.info(f"✅ Downloaded {url} to {save_path}")
+        return True
 
 
 # Global web scraper instance

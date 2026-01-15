@@ -118,6 +118,11 @@ class ReportGenerator:
         report.append(f"**Generated:** {dt.now().strftime('%B %d, %Y at %I:%M %p')}")
         report.append("\n---\n")
         
+        # If we have a full report from the synthesis agent, use it
+        if synthesis.get("full_report"):
+            report.append(synthesis["full_report"])
+            return "\n".join(report)
+        
         # Executive Summary
         report.append("## Executive Summary\n")
         report.append(synthesis.get("executive_summary", "No summary available."))
@@ -132,16 +137,30 @@ class ReportGenerator:
         # Company Profile
         profile = research_results.get("profile", {})
         if profile:
-            report.append("## Company Profile\n")
-            report.append(f"**Industry:** {profile.get('industry', 'N/A')}")
-            report.append(f"**Sector:** {profile.get('sector', 'N/A')}")
-            report.append(f"**Founded:** {profile.get('founded', 'N/A')}")
-            report.append(f"**Headquarters:** {profile.get('headquarters', 'N/A')}")
-            report.append(f"**Employees:** {profile.get('employees', 'N/A')}")
-            report.append(f"\n**Description:**\n{profile.get('description', 'N/A')}\n")
+            # Helper to format values
+            def format_val(val, prefix="", suffix=""):
+                # Handle TrustedValue objects
+                if isinstance(val, dict) and "value" in val:
+                    val = val["value"]
+                    
+                if val is None or val == "null" or val == "None" or val == "N/A":
+                    return "N/A"
+                return f"{prefix}{val}{suffix}"
+
+            report.append(f"**Fiscal Year:** {format_val(profile.get('fiscal_year'))}")
+            report.append(f"**Industry:** {format_val(profile.get('industry', 'N/A'))}")
+            report.append(f"**Sector:** {format_val(profile.get('sector', 'N/A'))}")
+            report.append(f"**Founded:** {format_val(profile.get('founded', 'N/A'))}")
+            report.append(f"**Headquarters:** {format_val(profile.get('headquarters', 'N/A'))}")
+            report.append(f"**Employees:** {format_val(profile.get('employees', 'N/A'))}")
+            report.append(f"\n**Description:**\n{format_val(profile.get('description', 'N/A'))}\n")
             
             products = profile.get('products', [])
-            if products:
+            # Handle TrustedValue list
+            if isinstance(products, dict) and "value" in products:
+                products = products["value"]
+                
+            if products and isinstance(products, list):
                 report.append("**Key Products/Services:**")
                 for product in products:
                     report.append(f"- {product}")
