@@ -41,20 +41,34 @@ class WebScraper:
         self.last_request_time = time.time()
     
     @retry_on_failure(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(requests.exceptions.RequestException,))
-    def fetch_html(self, url: str, timeout: int = 10) -> Optional[str]:
+    def fetch_html(self, url: str, timeout: int = 15) -> Optional[str]:
         """
         Fetch HTML content from a URL with retry logic.
-        
-        Args:
-            url: URL to fetch
-            timeout: Request timeout in seconds
-            
-        Returns:
-            HTML content or None if failed
+        Tries ScrapingBee first if available, otherwise falls back to direct requests.
         """
-        self._rate_limit()
+        from app.core.config import config
         
-        logger.debug(f"🌐 Fetching {url}")
+        # Try ScrapingBee first (Main)
+        if config.data_sources.scrapingbee_api_key:
+            try:
+                logger.debug(f"🐝 Fetching via ScrapingBee: {url}")
+                params = {
+                    'api_key': config.data_sources.scrapingbee_api_key,
+                    'url': url,
+                    'render_js': 'true',
+                    'timeout': timeout * 1000  # ScrapingBee uses ms
+                }
+                response = requests.get('https://app.scrapingbee.com/api/v1/', params=params, timeout=timeout + 5)
+                if response.status_code == 200:
+                    return response.text
+                else:
+                    logger.warning(f"⚠️ ScrapingBee returned status {response.status_code} for {url}, falling back...")
+            except Exception as e:
+                logger.warning(f"⚠️ ScrapingBee failed for {url}: {e}, falling back...")
+
+        # Fallback to direct requests
+        self._rate_limit()
+        logger.debug(f"🌐 Fetching directly: {url}")
         response = self.session.get(url, timeout=timeout)
         response.raise_for_status()
         return response.text
@@ -169,163 +183,154 @@ class WebScraper:
     
     def search_google(self, query: str, num_results: int = 10) -> List[Dict[str, str]]:
         """
-        Search Google and return results using SerpAPI if available.
-        
-        Args:
-            query: Search query
-            num_results: Number of results to return
-            
-        Returns:
-            List of search results with title and URL
+        Search Google and return results.
+        Priority: ScrapingBee (Main) -> SerpAPI (Fallback) -> Direct Scraping
         """
-        # Try SerpAPI first if available
         from app.core.config import config
         
+        # 1. Try ScrapingBee (Main)
+        if config.data_sources.scrapingbee_api_key:
+            try:
+                params = {
+                    'api_key': config.data_sources.scrapingbee_api_key,
+                    'search_engine': 'google',
+                    'query': query,
+                    'nb_results': num_results
+                }
+                logger.info(f"🐝 Searching Google via ScrapingBee: {query}")
+                response = requests.get('https://app.scrapingbee.com/api/v1/google', params=params, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = []
+                    organic_results = data.get("organic_results", [])
+                    for result in organic_results[:num_results]:
+                        results.append({
+                            'title': result.get('title', ''),
+                            'url': result.get('url', ''),
+                            'snippet': result.get('description', '')
+                        })
+                    if results:
+                        return results
+            except Exception as e:
+                logger.warning(f"⚠️ ScrapingBee Search failed: {e}, trying fallback")
+
+        # 2. Try SerpAPI (Fallback)
         if config.data_sources.serpapi_key:
             try:
-                import requests
-                
                 params = {
                     "q": query,
                     "num": num_results,
                     "api_key": config.data_sources.serpapi_key,
                     "engine": "google"
                 }
-                
+                logger.info(f"🔍 Searching Google via SerpAPI: {query}")
                 response = requests.get("https://serpapi.com/search", params=params, timeout=10)
                 
                 if response.status_code == 200:
                     data = response.json()
                     results = []
-                    
-                    # Check for error in response
-                    if "error" in data:
-                        logger.warning(f"SerpAPI error: {data['error']}")
-                    else:
-                        # Extract organic results
-                        organic_results = data.get("organic_results", [])
-                        for result in organic_results[:num_results]:
-                            results.append({
-                                'title': result.get('title', ''),
-                                'url': result.get('link', ''),
-                                'snippet': result.get('snippet', '')
-                            })
-                        
-                        if results:
-                            logger.info(f"SerpAPI returned {len(results)} results")
-                            return results
-                        else:
-                            logger.warning("SerpAPI returned no organic results")
-                else:
-                    logger.warning(f"SerpAPI returned status code {response.status_code}")
+                    organic_results = data.get("organic_results", [])
+                    for result in organic_results[:num_results]:
+                        results.append({
+                            'title': result.get('title', ''),
+                            'url': result.get('link', ''),
+                            'snippet': result.get('snippet', '')
+                        })
+                    if results:
+                        return results
             except Exception as e:
-                logger.warning(f"SerpAPI failed: {e}, falling back to direct scraping")
+                logger.warning(f"⚠️ SerpAPI Search failed: {e}")
         
-        # Fallback to direct Google scraping (may be blocked)
+        # 3. Fallback to direct Google scraping
         search_url = f"https://www.google.com/search?q={requests.utils.quote(query)}&num={num_results}"
-        soup = self.fetch_and_parse(search_url)
-        
-        if soup is None:
+        # Use our fetch_html which might use ScrapingBee anyway
+        html = self.fetch_html(search_url)
+        if not html:
             return []
-        
+            
+        soup = BeautifulSoup(html, 'lxml')
         results = []
-        
-        # Parse search results
         for result in soup.select('div.g'):
             title_element = result.select_one('h3')
             link_element = result.select_one('a')
-            
             if title_element and link_element:
                 title = title_element.get_text(strip=True)
                 url = link_element.get('href', '')
-                
                 if url and not url.startswith('/search'):
-                    results.append({
-                        'title': title,
-                        'url': url
-                    })
-        
+                    results.append({'title': title, 'url': url})
         return results[:num_results]
     
     def search_google_news(self, query: str, months_back: int = 6, num_results: int = 20) -> List[Dict[str, Any]]:
         """
-        Search Google News specifically for recent articles with dates.
-        
-        Args:
-            query: Search query (company name)
-            months_back: How many months back to search
-            num_results: Number of results to return
-            
-        Returns:
-            List of news articles with title, URL, date, source, snippet
+        Search Google News.
+        Priority: ScrapingBee (Main) -> SerpAPI (Fallback)
         """
         from app.core.config import config
         
-        if not config.data_sources.serpapi_key:
-            logger.warning("No SerpAPI key configured, falling back to search_google")
-            return self.search_google(f"{query} news", num_results)
+        # 1. Try ScrapingBee (Main)
+        if config.data_sources.scrapingbee_api_key:
+            try:
+                params = {
+                    'api_key': config.data_sources.scrapingbee_api_key,
+                    'search_engine': 'google',
+                    'query': f"{query} news", # ScrapingBee doesn't have a specific news engine like SerpAPI, so we append 'news'
+                    'nb_results': num_results,
+                    'tbm': 'nws' # Standard Google News parameter
+                }
+                logger.info(f"🐝 Searching Google News via ScrapingBee: {query}")
+                response = requests.get('https://app.scrapingbee.com/api/v1/google', params=params, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = []
+                    organic_results = data.get("organic_results", [])
+                    for result in organic_results[:num_results]:
+                        results.append({
+                            'title': result.get('title', ''),
+                            'url': result.get('url', ''),
+                            'source': result.get('source', ''),
+                            'date': result.get('published_date', ''),
+                            'snippet': result.get('description', '')
+                        })
+                    if results:
+                        return results
+            except Exception as e:
+                logger.warning(f"⚠️ ScrapingBee News Search failed: {e}, trying fallback")
+
+        # 2. Try SerpAPI (Fallback)
+        if config.data_sources.serpapi_key:
+            try:
+                params = {
+                    "engine": "google_news",
+                    "q": query,
+                    "num": num_results,
+                    "api_key": config.data_sources.serpapi_key,
+                    "tbs": "qdr:m6" # Default 6 months
+                }
+                if months_back <= 1: params["tbs"] = "qdr:m"
+                elif months_back <= 12: params["tbs"] = "qdr:y"
+
+                logger.info(f"🔍 Searching Google News via SerpAPI: {query}")
+                response = requests.get("https://serpapi.com/search", params=params, timeout=15)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    news_results = data.get("news_results", [])
+                    articles = []
+                    for article in news_results[:num_results]:
+                        articles.append({
+                            'title': article.get('title', ''),
+                            'url': article.get('link', ''),
+                            'source': article.get('source', ''),
+                            'date': article.get('date', ''),
+                            'snippet': article.get('snippet', '')
+                        })
+                    return articles
+            except Exception as e:
+                logger.exception(f"⚠️ SerpAPI News failed: {e}")
         
-        try:
-            import requests
-            from datetime import datetime, timedelta
-            
-            # Calculate date range
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=months_back * 30)
-            
-            params = {
-                "engine": "google_news",  # Use News engine
-                "q": query,
-                "gl": "us",  # Geographic location
-                "hl": "en",  # Language
-                "num": num_results,
-                "api_key": config.data_sources.serpapi_key
-            }
-            
-            # Add time filter (qdr parameter: m6 = 6 months, m12 = 12 months)
-            if months_back <= 1:
-                params["tbs"] = "qdr:m"  # Past month
-            elif months_back <= 6:
-                params["tbs"] = "qdr:m6"  # Past 6 months
-            elif months_back <= 12:
-                params["tbs"] = "qdr:y"  # Past year
-            
-            logger.info(f"Searching Google News for '{query}' (past {months_back} months)")
-            response = requests.get("https://serpapi.com/search", params=params, timeout=15)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                if "error" in data:
-                    logger.error(f"SerpAPI News error: {data['error']}")
-                    return []
-                
-                news_results = data.get("news_results", [])
-                
-                if not news_results:
-                    logger.warning(f"No news results found for '{query}'")
-                    return []
-                
-                articles = []
-                for article in news_results[:num_results]:
-                    articles.append({
-                        'title': article.get('title', ''),
-                        'url': article.get('link', ''),
-                        'source': article.get('source', ''),
-                        'date': article.get('date', ''),  # e.g., "2 days ago"
-                        'snippet': article.get('snippet', ''),
-                        'thumbnail': article.get('thumbnail', '')
-                    })
-                
-                logger.info(f"Found {len(articles)} news articles")
-                return articles
-            else:
-                logger.error(f"SerpAPI News returned status {response.status_code}")
-                return []
-                
-        except Exception as e:
-            logger.exception(f"Failed to search Google News: {e}")
-            return []
+        return self.search_google(f"{query} news", num_results)
     
     def extract_wikipedia_history(self, wiki_url: str) -> Optional[str]:
         """

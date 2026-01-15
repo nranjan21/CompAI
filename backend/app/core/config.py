@@ -16,11 +16,11 @@ class LLMConfig(BaseModel):
     """Configuration for LLM providers with fallback chain."""
     
     providers: List[str] = [
-        "gemini",
-        "groq", 
+        "groq",
         "huggingface",
-        "together",
-        "cohere"
+        "cohere",
+        "gemini",
+        "together"
     ]
     
     # API Keys
@@ -29,6 +29,10 @@ class LLMConfig(BaseModel):
     huggingface_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("HUGGINGFACE_API_KEY"))
     together_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("TOGETHER_API_KEY"))
     cohere_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("COHERE_API_KEY"))
+    
+    # Model selections
+    huggingface_model: str = Field(default_factory=lambda: os.getenv("HF_MODEL", "mistralai/Mixtral-8x7B-Instruct-v0.1"))
+    together_model: str = Field(default_factory=lambda: os.getenv("TOGETHER_MODEL", "meta-llama/Llama-3.3-70B-Instruct-Turbo"))
     
     # Retry settings
     max_retries_per_provider: int = 2
@@ -44,7 +48,8 @@ class DataSourceConfig(BaseModel):
     reddit_client_secret: Optional[str] = Field(default_factory=lambda: os.getenv("REDDIT_CLIENT_SECRET"))
     reddit_user_agent: str = Field(default_factory=lambda: os.getenv("REDDIT_USER_AGENT", "CompanyResearchAgent/1.0"))
     
-    # SerpAPI (optional)
+    # Scraping & Search
+    scrapingbee_api_key: Optional[str] = Field(default_factory=lambda: os.getenv("SCRAPINGBEE_API_KEY"))
     serpapi_key: Optional[str] = Field(default_factory=lambda: os.getenv("SERPAPI_KEY"))
     
     # SEC EDGAR

@@ -138,7 +138,7 @@ class LLMManager:
         client = self.providers[LLMProvider.HUGGINGFACE]
         response = client.text_generation(
             prompt,
-            model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            model=config.llm.huggingface_model,
             max_new_tokens=kwargs.get("max_tokens", 2048),
             temperature=kwargs.get("temperature", 0.7),
         )
@@ -147,7 +147,7 @@ class LLMManager:
     def _call_together(self, prompt: str, **kwargs) -> str:
         client = self.providers[LLMProvider.TOGETHER]
         response = client.chat.completions.create(
-            model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            model=config.llm.together_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=kwargs.get("temperature", 0.7),
             max_tokens=kwargs.get("max_tokens", 2048),

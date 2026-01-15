@@ -31,7 +31,7 @@ graph TD
 ### 🧠 Specialized Research Agents
 1. **Company Profile Agent**: Validates company identity and extracts **Wikipedia-based historical context**.
 2. **Financial Research Agent**: Parses SEC filings with **automated anomaly detection** (flagging unusual growth/margins).
-3. **News Intelligence Agent**: Uses **SerpAPI News** with date filtering to build chronological event timelines.
+3. **News Intelligence Agent**: Uses **ScrapingBee** (Main) or **SerpAPI** (Fallback) to build chronological event timelines from realnews.
 4. **Sentiment Analysis Agent**: Implements **multi-stage fallback** (Social/Reddit/Reviews) when news data is sparse.
 5. **Competitive Intelligence Agent**: Maps competitors, SWOT, and market positioning.
 6. **Synthesis Engine**: Performs reasoning-aware data aggregation to resolve contradictions and surface "non-obvious" insights.
@@ -41,7 +41,7 @@ graph TD
 ## ✨ Key Features
 
 ### 1. **Robust Data Sourcing** 📰
-- **SerpAPI News Integration**: Real news sourcing with chronological metadata (source, date, snippets).
+- **ScrapingBee & SerpAPI Integration**: Multi-layered news and search sourcing with JS-rendering support for robust data collection.
 - **Wikipedia History Extraction**: Automatically parses founding, IPO, and M&A history for richer context.
 - **SEC EDGAR Parsing**: Direct extraction of income statements and balance sheets from official filings.
 
@@ -84,7 +84,8 @@ GROQ_API_KEY=...
 COHERE_API_KEY=...
 
 # Scraping / Data
-SERPAPI_API_KEY=...  # Required for Rich News & Search
+SCRAPINGBEE_API_KEY=...  # Primary Scraper & Search
+SERPAPI_API_KEY=...      # Fallback for Rich News & Search
 ```
 
 ---
@@ -141,4 +142,4 @@ The agent produces high-density Markdown reports containing:
 
 ---
 
-**Built with**: LangGraph, SerpAPI, Gemini/LLM Fallbacks.
+**Built with**: LangGraph, ScrapingBee, SerpAPI, LLM Fallbacks (Groq/Cohere/Gemini).
