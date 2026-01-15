@@ -1,0 +1,116 @@
+/**
+ * Design Tokens - Flash.co Inspired Design System
+ * Based on analysis of https://home.flash.co/in
+ */
+
+:root {
+  /* ===== Color Palette ===== */
+  
+  /* Primary Accent */
+  --color-purple-primary: #5A16FF;
+  --color-purple-rgb: 90, 22, 255;
+  --color-purple-hover: #4912CC;
+  --color-purple-light: rgba(90, 22, 255, 0.1);
+  
+  /* Backgrounds */
+  --color-bg-light: #F6F5F4;
+  --color-bg-dark: #000000;
+  --color-bg-glass-light: rgba(255, 255, 255, 0.1);
+  --color-bg-glass-dark: rgba(0, 0, 0, 0.3);
+  --color-bg-white: #FFFFFF;
+  
+  /* Text Colors */
+  --color-text-dark: rgba(0, 0, 0, 0.8);
+  --color-text-secondary: #515151;
+  --color-text-light: #FFFFFF;
+  --color-text-muted: rgba(0, 0, 0, 0.5);
+  --color-text-light-muted: rgba(255, 255, 255, 0.7);
+  
+  /* Borders */
+  --color-border-light: rgba(0, 0, 0, 0.1);
+  --color-border-dark: rgba(255, 255, 255, 0.1);
+  
+  /* ===== Typography ===== */
+  
+  /* Font Families */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-accent: 'Playfair Display', Georgia, serif;
+  
+  /* Font Sizes */
+  --text-hero: clamp(48px, 8vw, 106px);
+  --text-h1: clamp(36px, 5vw, 64px);
+  --text-h2: clamp(28px, 4vw, 48px);
+  --text-h3: clamp(24px, 3vw, 36px);
+  --text-h4: clamp(20px, 2.5vw, 28px);
+  --text-body-lg: 20px;
+  --text-body: 18px;
+  --text-body-sm: 16px;
+  --text-small: 14px;
+  --text-xs: 12px;
+  
+  /* Font Weights */
+  --weight-light: 300;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  
+  /* Line Heights */
+  --line-height-tight: 1.1;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* ===== Spacing System (4px base grid) ===== */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 96px;
+  --space-5xl: 128px;
+  
+  /* ===== Border Radius ===== */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 100px;
+  --radius-circle: 50%;
+  
+  /* ===== Shadows ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 40px rgba(90, 22, 255, 0.3);
+  
+  /* ===== Transitions ===== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+  
+  /* ===== Z-Index Scale ===== */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  
+  /* ===== Blur Values ===== */
+  --blur-sm: 10px;
+  --blur-md: 20px;
+  --blur-lg: 30px;
+  --blur-xl: 40px;
+  
+  /* ===== Container Widths ===== */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+}

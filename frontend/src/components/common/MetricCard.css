@@ -1,0 +1,136 @@
+.metric-card {
+    background: var(--color-bg-white);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    transition: all var(--transition-base);
+}
+
+.metric-card-purple::before {
+    background: var(--color-purple-primary);
+}
+
+.metric-card-green::before {
+    background: #10B981;
+}
+
+.metric-card-red::before {
+    background: #EF4444;
+}
+
+.metric-card-blue::before {
+    background: #3B82F6;
+}
+
+.metric-card-orange::before {
+    background: #F59E0B;
+}
+
+.metric-card:hover::before {
+    width: 100%;
+    opacity: 0.05;
+}
+
+/* Icon */
+.metric-icon {
+    font-size: 32px;
+    margin-bottom: var(--space-sm);
+    line-height: 1;
+}
+
+.metric-card-sm .metric-icon {
+    font-size: 24px;
+}
+
+.metric-card-lg .metric-icon {
+    font-size: 40px;
+}
+
+/* Content */
+.metric-content {
+    position: relative;
+    z-index: 1;
+}
+
+.metric-label {
+    font-size: var(--text-small);
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-medium);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 32px;
+    font-weight: var(--weight-bold);
+    color: var(--color-text-dark);
+    line-height: 1.2;
+    margin-bottom: var(--space-xs);
+}
+
+.metric-card-sm .metric-value {
+    font-size: 24px;
+}
+
+.metric-card-lg .metric-value {
+    font-size: 40px;
+}
+
+/* Trend */
+.metric-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--text-small);
+    font-weight: var(--weight-medium);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.metric-trend-up {
+    color: #10B981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.metric-trend-down {
+    color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.metric-trend-neutral {
+    color: var(--color-text-secondary);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Sizes */
+.metric-card-sm {
+    padding: var(--space-md);
+}
+
+.metric-card-lg {
+    padding: var(--space-2xl);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .metric-value {
+        font-size: 24px;
+    }
+
+    .metric-card-lg .metric-value {
+        font-size: 32px;
+    }
+}

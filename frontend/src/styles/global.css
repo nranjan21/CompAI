@@ -1,0 +1,162 @@
+/**
+ * Global Styles
+ * CSS Reset, Font Loading, and Base Styles
+ */
+
+/* ===== Google Fonts Import ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* ===== CSS Reset ===== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-primary);
+    font-size: var(--text-body);
+    font-weight: var(--weight-normal);
+    line-height: var(--line-height-normal);
+    color: var(--color-text-dark);
+    background-color: var(--color-bg-light);
+    overflow-x: hidden;
+}
+
+/* ===== Typography Base Styles ===== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: var(--weight-medium);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-dark);
+}
+
+h1 {
+    font-size: var(--text-h1);
+}
+
+h2 {
+    font-size: var(--text-h2);
+}
+
+h3 {
+    font-size: var(--text-h3);
+}
+
+h4 {
+    font-size: var(--text-h4);
+}
+
+p {
+    margin-bottom: var(--space-md);
+}
+
+a {
+    color: var(--color-purple-primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-purple-hover);
+}
+
+/* ===== Selection Styles ===== */
+::selection {
+    background-color: var(--color-purple-primary);
+    color: var(--color-text-light);
+}
+
+::-moz-selection {
+    background-color: var(--color-purple-primary);
+    color: var(--color-text-light);
+}
+
+/* ===== Scrollbar Styles ===== */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-text-secondary);
+    border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-dark);
+}
+
+/* ===== Focus Styles ===== */
+:focus-visible {
+    outline: 2px solid var(--color-purple-primary);
+    outline-offset: 2px;
+}
+
+/* ===== Button Reset ===== */
+button {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* ===== Input Reset ===== */
+input,
+textarea,
+select {
+    font-family: inherit;
+    font-size: inherit;
+    border: none;
+    background: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+}
+
+/* ===== Image Styles ===== */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ===== List Styles ===== */
+ul,
+ol {
+    list-style: none;
+}
+
+/* ===== Utility: Screen Reader Only ===== */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}

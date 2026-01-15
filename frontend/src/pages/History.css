@@ -1,0 +1,76 @@
+.history-page {
+    min-height: 100vh;
+    padding: var(--space-4xl) 0;
+    background: var(--color-bg-light);
+}
+
+.history-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.history-title {
+    font-size: var(--text-h1);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-3xl);
+    color: var(--color-text-dark);
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-xl);
+}
+
+.report-card-item {
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.report-card-company {
+    font-size: var(--text-h4);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-sm);
+    color: var(--color-text-dark);
+}
+
+.report-card-ticker {
+    display: inline-block;
+    background: var(--color-purple-light);
+    color: var(--color-purple-primary);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: var(--radius-pill);
+    font-size: var(--text-small);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-md);
+}
+
+.report-card-date {
+    font-size: var(--text-body-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--space-4xl);
+}
+
+.empty-state h2 {
+    font-size: var(--text-h2);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-lg);
+    color: var(--color-text-dark);
+}
+
+.empty-state p {
+    font-size: var(--text-body-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+}
