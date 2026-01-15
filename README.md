@@ -90,9 +90,9 @@ graph TD
 
 ### 4. **Resilient LLM Fallback Chain** 🛡️
 Supports automatic provider-switching to maintain 100% uptime using free-tier APIs:
-- **Google Gemini 2.0 Flash** (Primary)
+- **OpenAI GPT 4o-mini** (Primary)
 - **Groq** (Llama 3.3 70B - High speed)
-- **Cohere** / **Together AI** / **Hugging Face**
+- **Google Gemini 2.0 Flash** / **Cohere** / **Together AI** / **Hugging Face**
 
 ---
 
