@@ -328,7 +328,7 @@ npm run build
 - **Pydantic** - Data validation
 - **Uvicorn** - ASGI server
 - **ScrapingBee / SerpAPI** - Web scraping
-- **Multiple LLM Providers** - Gemini, Groq, Cohere
+- **Multiple LLM Providers** - OpenAI, Gemini, Groq, Cohere, Huggingface
 
 ### Frontend
 - **React 19** - UI framework
